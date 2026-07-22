@@ -1,0 +1,29 @@
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "UNICAB",
+    "Supabase",
+    "Yaseen",
+    "Jacobs",
+    "ossp",
+    "pgcrypto",
+    "plpgsql",
+    "schemaname",
+    "tablename",
+    "policyname",
+    "timestamptz",
+    "gen_random_uuid",
+    "uuid_generate_v4",
+    "PostgREST",
+    "Yoco",
+    "YOCO",
+    "Unicab",
+    "fkey"
+  ],
+  "ignorePaths": [
+    "node_modules/**",
+    "dist/**",
+    "build/**"
+  ]
+}
