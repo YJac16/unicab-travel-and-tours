@@ -1,7 +1,6 @@
 import { supabase, isSupabaseConfigured, isSupabaseNetworkError } from './supabase';
 import { calculateTourPrice, getPriceForGroupSize, formatTourPrice } from './pricing';
-
-export { calculateTourPrice, getPriceForGroupSize, formatTourPrice };
+export { calculateTourPrice, getPriceForGroupSize, formatTourPrice, applyMembershipDiscount, getMembershipDiscountLabel } from './pricing';
 
 const isUuid = (value) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
@@ -379,9 +378,20 @@ export const createBooking = async (bookingData) => {
     total_price: bookingData.total_price || bookingData.totalPrice || 0,
     status: bookingData.status || 'reserved',
     user_id: bookingData.user_id || null,
+    pickup_address: bookingData.pickup_address || bookingData.pickupAddress || null,
+    pickup_lat: bookingData.pickup_lat ?? bookingData.pickupLat ?? null,
+    pickup_lng: bookingData.pickup_lng ?? bookingData.pickupLng ?? null,
   };
 
-  // Use apiCall with auth header if token exists
+  // Prefer Supabase session token when available
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) {
+      headers['Authorization'] = `Bearer ${session.access_token}`;
+    }
+  } catch {
+    // keep legacy token if any
+  }
   const url = API_BASE_URL ? `${API_BASE_URL}/api/bookings` : '/api/bookings';
   try {
     const response = await fetch(url, {
@@ -1222,20 +1232,23 @@ export const getAvailableDrivers = async (date, groupSize = null) => {
   }
 };
 
-// Member API (requires authentication token)
+// Member API (requires authentication token — Supabase session preferred)
 const memberApiCall = async (endpoint, options = {}) => {
-  const token = localStorage.getItem('auth_token');
+  let token = null;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) token = session.access_token;
+  } catch {
+    // ignore
+  }
+  if (!token) token = localStorage.getItem('auth_token');
   return apiCall(endpoint, {
     ...options,
     headers: {
       ...options.headers,
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
-};
-
-export const getMemberBookings = async () => {
-  return memberApiCall('/api/member/bookings');
 };
 
 // Registration API (public)
@@ -1547,7 +1560,107 @@ export const rejectReview = async (reviewId, reviewType) => {
   return { data, error };
 };
 
+async function getAccessToken() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.access_token) return session.access_token;
+  } catch {
+    // ignore
+  }
+  return localStorage.getItem('auth_token');
+}
 
+const authApiCall = async (endpoint, options = {}) => {
+  const token = await getAccessToken();
+  if (!token) {
+    return { data: null, error: { message: 'Authentication required. Please log in.', status: 401 } };
+  }
+  return apiCall(endpoint, {
+    ...options,
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
 
+// Prefer Supabase session for member calls
+const memberApiCallAuth = async (endpoint, options = {}) => authApiCall(endpoint, options);
 
+export const getMemberBookings = async () => memberApiCallAuth('/api/member/bookings');
+export const getMemberBooking = async (id) => memberApiCallAuth(`/api/member/bookings/${id}`);
+export const getMemberSubscriptions = async () => memberApiCallAuth('/api/member/subscriptions');
+export const createMemberSubscription = async (payload) =>
+  memberApiCallAuth('/api/member/subscriptions', { method: 'POST', body: JSON.stringify(payload) });
+export const cancelMemberSubscription = async (id) =>
+  memberApiCallAuth(`/api/member/subscriptions/${id}/cancel`, { method: 'POST', body: '{}' });
+export const getMemberInvoices = async () => memberApiCallAuth('/api/member/invoices');
+export const updateMemberProfile = async (payload) =>
+  memberApiCallAuth('/api/member/profile', { method: 'PATCH', body: JSON.stringify(payload) });
+
+export const getDriverBooking = async (id) => driverApiCall(`/api/driver/bookings/${id}`);
+export const updateDriverTripStatus = async (id, trip_status) =>
+  driverApiCall(`/api/driver/bookings/${id}/trip-status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ trip_status }),
+  });
+export const postDriverLocation = async (id, coords) =>
+  driverApiCall(`/api/driver/bookings/${id}/location`, {
+    method: 'POST',
+    body: JSON.stringify(coords),
+  });
+
+export const getAdminTours = async () => adminApiCall('/api/admin/tours');
+export const createAdminTour = async (payload) =>
+  adminApiCall('/api/admin/tours', { method: 'POST', body: JSON.stringify(payload) });
+export const updateAdminTour = async (id, payload) =>
+  adminApiCall(`/api/admin/tours/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+
+export const getAdminVehicles = async () => {
+  const token = await getAccessToken();
+  if (!token) return { data: null, summary: null, error: { message: 'Authentication required', status: 401 } };
+  const base = API_BASE_URL || '';
+  try {
+    const response = await fetch(`${base}/api/admin/vehicles`, {
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    });
+    const result = await response.json();
+    if (!response.ok) return { data: null, summary: null, error: result };
+    return { data: result.data || [], summary: result.summary || null, error: null };
+  } catch (error) {
+    return { data: null, summary: null, error: { message: error.message } };
+  }
+};
+export const createAdminVehicles = async (payload) =>
+  adminApiCall('/api/admin/vehicles', { method: 'POST', body: JSON.stringify(payload) });
+export const updateAdminVehicle = async (id, payload) =>
+  adminApiCall(`/api/admin/vehicles/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+export const deleteAdminVehicle = async (id) =>
+  adminApiCall(`/api/admin/vehicles/${id}`, { method: 'DELETE' });
+
+export const dispatchAdminBooking = async (id, payload) =>
+  adminApiCall(`/api/admin/bookings/${id}/dispatch`, { method: 'PATCH', body: JSON.stringify(payload) });
+
+export const getAdminTracking = async () => adminApiCall('/api/admin/tracking');
+export const getAdminInvoices = async () => adminApiCall('/api/admin/invoices');
+export const createAdminInvoice = async (payload) =>
+  adminApiCall('/api/admin/invoices', { method: 'POST', body: JSON.stringify(payload) });
+export const updateAdminInvoice = async (id, payload) =>
+  adminApiCall(`/api/admin/invoices/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+
+export const downloadAdminInvoicePdf = async (id, number) => {
+  const token = await getAccessToken();
+  const base = API_BASE_URL || '';
+  const res = await fetch(`${base}/api/admin/invoices/${id}/pdf`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('PDF download failed');
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${number || 'invoice'}.pdf`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 

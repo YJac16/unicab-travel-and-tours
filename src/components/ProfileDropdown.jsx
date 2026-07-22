@@ -38,8 +38,7 @@ function ProfileDropdown() {
         visibility: 'visible',
         opacity: 1
       }}>
-        {/* ADMIN/DRIVER ONLY - Sign in hidden from customer-facing site */}
-        {/* <Link to="/login" className="btn btn-outline">Sign In</Link> */}
+        <Link to="/login" className="btn btn-outline">Sign In</Link>
       </div>
     );
   }
@@ -101,8 +100,10 @@ function ProfileDropdown() {
           minWidth: 'fit-content'
         }}
       >
-        {/* ADMIN/DRIVER ONLY - Sign in hidden from customer-facing site */}
-        {/* <Link to="/login" className="btn btn-outline">Sign In</Link> */}
+        <Link to="/login" className="btn btn-outline">Sign In</Link>
+        <Link to="/member/register" className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
+          Join
+        </Link>
       </div>
     );
   }
@@ -258,11 +259,15 @@ function ProfileDropdown() {
               </Link>
             )}
 
-            {/* Profile link - ADMIN/DRIVER ONLY, member profile hidden */}
-            {(userRole === 'admin' || userRole === 'driver') && (
-              <Link
-                to={userRole === 'admin' ? '/admin/profile' : '/driver/profile'}
-                onClick={() => setIsOpen(false)}
+            <Link
+              to={
+                userRole === 'admin'
+                  ? '/admin/profile'
+                  : userRole === 'driver'
+                    ? '/driver/profile'
+                    : '/member/profile'
+              }
+              onClick={() => setIsOpen(false)}
               style={{
                 display: 'block',
                 padding: '0.75rem 1rem',
@@ -296,9 +301,23 @@ function ProfileDropdown() {
                 Profile
               </div>
             </Link>
-            )}
 
-            {/* MEMBER FEATURES HIDDEN - Customer-facing only, no member features */}
+            {(userRole === 'member' || userRole === 'customer') && (
+              <Link
+                to="/member/subscriptions"
+                onClick={() => setIsOpen(false)}
+                style={{
+                  display: 'block',
+                  padding: '0.75rem 1rem',
+                  textDecoration: 'none',
+                  color: 'var(--text-main)',
+                  fontSize: '0.9rem',
+                  borderRadius: '8px',
+                }}
+              >
+                Subscriptions
+              </Link>
+            )}
 
             <div
               style={{

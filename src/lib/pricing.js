@@ -90,3 +90,25 @@ export const formatTourPrice = (amount) => {
   if (!amount || amount <= 0) return 'Price on request';
   return `R${Number(amount).toLocaleString()}`;
 };
+
+/** Apply active membership tier discount to a per-person or total amount. */
+export const applyMembershipDiscount = (amount, tier) => {
+  const base = toNumber(amount);
+  if (!base) return 0;
+  const rates = {
+    explorer: 0.065, // mid of 5–8%
+    frequent: 0.125, // mid of 10–15%
+    elite: 0.15,
+  };
+  const rate = rates[String(tier || '').toLowerCase()] || 0;
+  return Math.round(base * (1 - rate));
+};
+
+export const getMembershipDiscountLabel = (tier) => {
+  const labels = {
+    explorer: '5–8% member rate',
+    frequent: '10–15% member rate',
+    elite: 'Elite contracted rate',
+  };
+  return labels[String(tier || '').toLowerCase()] || null;
+};

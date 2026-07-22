@@ -9,9 +9,11 @@ import {
   updateDriverStatus,
   getDriverUnavailabilityAdmin,
   blockDriverDateAdmin,
-  unblockDriverDateAdmin
+  unblockDriverDateAdmin,
+  getAdminVehicles,
+  dispatchAdminBooking,
 } from '../lib/api';
-import ProfileDropdown from '../components/ProfileDropdown';
+import AdminNav from '../components/AdminNav';
 import BackToTop from '../components/BackToTop';
 
 // Add Driver Form Component
@@ -383,6 +385,8 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [drivers, setDrivers] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+  const [fleetSummary, setFleetSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('bookings');
   const [selectedDriver, setSelectedDriver] = useState(null);
@@ -401,13 +405,16 @@ function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [bookingsData, driversData] = await Promise.all([
+      const [bookingsData, driversData, vehiclesData] = await Promise.all([
         getAdminBookings(filters),
         getAdminDrivers(),
+        getAdminVehicles(),
       ]);
 
       if (bookingsData.data) setBookings(bookingsData.data);
       if (driversData.data) setDrivers(driversData.data);
+      if (vehiclesData.data) setVehicles(vehiclesData.data || []);
+      if (vehiclesData.summary) setFleetSummary(vehiclesData.summary);
     } catch (error) {
       console.error('Error loading data:', error);
       // If unauthorized, redirect to login
@@ -437,6 +444,19 @@ function AdminDashboard() {
     } else {
       alert(error.message || 'Failed to update booking status');
     }
+  };
+
+  const handleDispatch = async (bookingId, driverId, vehicleId) => {
+    const { error } = await dispatchAdminBooking(bookingId, {
+      driver_id: driverId || undefined,
+      vehicle_id: vehicleId || undefined,
+      trip_status: 'assigned',
+    });
+    if (error) {
+      alert(error.message || 'Dispatch failed');
+      return;
+    }
+    loadData();
   };
 
   const handleBlockDriverDate = async (driverId, date, reason = '') => {
@@ -490,21 +510,19 @@ function AdminDashboard() {
 
   return (
     <div>
-      <header className="site-header">
-        <div className="container header-inner">
-          <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
-            <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
-          </Link>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
-            <ProfileDropdown />
-          </div>
-        </div>
-      </header>
+      <AdminNav />
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem" }}>
+        <section className="section" style={{ paddingTop: "2rem", paddingBottom: "4rem" }}>
           <div className="container">
             <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+              {fleetSummary && (
+                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+                  <div className="card soft" style={{ padding: '0.75rem 1rem' }}>Fleet available: <strong>{fleetSummary.available}</strong> / {fleetSummary.total}</div>
+                  <div className="card soft" style={{ padding: '0.75rem 1rem' }}>Dispatched: <strong>{fleetSummary.dispatched}</strong></div>
+                  <Link to="/admin/fleet" className="btn btn-outline" style={{ fontSize: '0.85rem' }}>Manage fleet</Link>
+                </div>
+              )}
               <h1 style={{ marginBottom: "2rem" }}>Admin Dashboard</h1>
 
               {/* Stats */}
@@ -703,6 +721,9 @@ function AdminDashboard() {
                             <p><strong>Customer:</strong> {booking.customer_name}</p>
                             <p><strong>Email:</strong> {booking.customer_email}</p>
                             <p><strong>Total:</strong> R{parseFloat(booking.total_price).toLocaleString()}</p>
+                            <p><strong>Pickup:</strong> {booking.pickup_address || '—'}</p>
+                            <p><strong>Vehicle:</strong> {booking.vehicle?.label || booking.vehicles?.label || '—'}</p>
+                            <p><strong>Trip:</strong> {booking.trip_status || '—'}</p>
                             <p><strong>Status:</strong> <span style={{
                               padding: "0.25rem 0.5rem",
                               borderRadius: "4px",
@@ -715,6 +736,40 @@ function AdminDashboard() {
                                 booking.status === 'completed' ? '#004085' :
                                 booking.status === 'cancelled' ? '#721c24' : '#856404'
                             }}>{booking.status}</span></p>
+                            <div style={{ marginTop: '0.75rem', display: 'grid', gap: '0.5rem' }}>
+                              <select
+                                id={`dispatch-driver-${booking.id}`}
+                                defaultValue={booking.driver_id || booking.driver?.id || ''}
+                                style={{ padding: '0.5rem' }}
+                              >
+                                <option value="">Assign driver…</option>
+                                {drivers.filter((d) => d.active !== false).map((d) => (
+                                  <option key={d.id} value={d.id}>{d.name}</option>
+                                ))}
+                              </select>
+                              <select
+                                id={`dispatch-vehicle-${booking.id}`}
+                                defaultValue={booking.vehicle_id || booking.vehicle?.id || ''}
+                                style={{ padding: '0.5rem' }}
+                              >
+                                <option value="">Assign vehicle…</option>
+                                {vehicles.filter((v) => v.status === 'available' || v.id === booking.vehicle_id).map((v) => (
+                                  <option key={v.id} value={v.id}>{v.label} ({v.status})</option>
+                                ))}
+                              </select>
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                style={{ fontSize: '0.85rem' }}
+                                onClick={() => {
+                                  const driverEl = document.getElementById(`dispatch-driver-${booking.id}`);
+                                  const vehicleEl = document.getElementById(`dispatch-vehicle-${booking.id}`);
+                                  handleDispatch(booking.id, driverEl?.value, vehicleEl?.value);
+                                }}
+                              >
+                                Dispatch
+                              </button>
+                            </div>
                           </div>
                           <div className="card-footer">
                             {booking.status === 'pending' && (

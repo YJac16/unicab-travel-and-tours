@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register } from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
 import BackToTop from '../components/BackToTop';
 import PasswordInput from '../components/PasswordInput';
 
@@ -14,6 +14,7 @@ function MemberRegister() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
   const validate = () => {
     const newErrors = {};
@@ -52,27 +53,19 @@ function MemberRegister() {
     setLoading(true);
 
     try {
-      const { data, error: registerError } = await register({
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-        role: 'MEMBER'
-      });
+      const { data, error: registerError } = await signUp(
+        formData.email.trim().toLowerCase(),
+        formData.password,
+        { full_name: formData.name.trim(), name: formData.name.trim() }
+      );
 
       if (registerError) {
-        setErrors({ submit: registerError.message || registerError.error || 'Registration failed' });
-      } else if (data && data.token) {
-        // Store token
-        localStorage.setItem('auth_token', data.token);
-        
-        // Redirect to member dashboard
+        setErrors({ submit: registerError.message || 'Registration failed' });
+      } else if (data?.user) {
         navigate('/member/dashboard', { replace: true });
       } else {
-        setErrors({ submit: 'Registration successful, but login required' });
-        // Redirect to login after a delay
-        setTimeout(() => {
-          navigate('/member/login');
-        }, 2000);
+        setErrors({ submit: 'Check your email to confirm your account, then sign in.' });
+        setTimeout(() => navigate('/login'), 2500);
       }
     } catch (error) {
       console.error('Registration error:', error);

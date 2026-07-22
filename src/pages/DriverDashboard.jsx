@@ -156,8 +156,15 @@ function DriverDashboard() {
                           {booking.special_requests && (
                             <p><strong>Special Requests:</strong> {booking.special_requests}</p>
                           )}
+                          {booking.pickup_address && (
+                            <p><strong>Pickup:</strong> {booking.pickup_address}</p>
+                          )}
+                          <p><strong>Trip:</strong> {booking.trip_status || '—'}</p>
                         </div>
                         <div className="card-footer">
+                          <Link to={`/driver/trips/${booking.id}`} className="btn btn-primary" style={{ marginRight: "0.5rem" }}>
+                            Open trip hub
+                          </Link>
                           {booking.status === 'pending' && (
                             <button
                               onClick={() => handleUpdateBookingStatus(booking.id, 'confirmed')}

@@ -23,8 +23,15 @@ import Login from "./pages/Login";
 import MemberLogin from "./pages/MemberLogin";
 import MemberRegister from "./pages/MemberRegister";
 import MemberDashboard from "./pages/MemberDashboard";
+import MemberSubscriptions from "./pages/MemberSubscriptions";
+import MemberBookingDetail from "./pages/MemberBookingDetail";
 import DriverDashboard from "./pages/DriverDashboard";
+import DriverTrip from "./pages/DriverTrip";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminTours from "./pages/AdminTours";
+import AdminFleet from "./pages/AdminFleet";
+import AdminInvoices from "./pages/AdminInvoices";
+import AdminTracking from "./pages/AdminTracking";
 import AdminProfile from "./pages/AdminProfile";
 import DriverProfile from "./pages/DriverProfile";
 import MemberProfile from "./pages/MemberProfile";
@@ -51,7 +58,6 @@ function App() {
         <Route path="/tours/:id/transaction" element={<TourTransaction />} />
         <Route path="/tours/:id/checkout" element={<TourCheckout />} />
         <Route path="/tours/:id/confirmation" element={<TourConfirmation />} />
-        {/* Unified Book Now entry → custom Supabase booking via tours */}
         <Route path="/book" element={<Navigate to="/tours" replace />} />
         <Route path="/booking-confirmation" element={<BookingConfirmation />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
@@ -64,6 +70,8 @@ function App() {
         <Route path="/member/login" element={<MemberLogin />} />
         <Route path="/member/register" element={<MemberRegister />} />
         <Route path="/member/dashboard" element={<ProtectedRoute requiredRole="member"><MemberDashboard /></ProtectedRoute>} />
+        <Route path="/member/subscriptions" element={<ProtectedRoute requiredRole="member"><MemberSubscriptions /></ProtectedRoute>} />
+        <Route path="/member/bookings/:id" element={<ProtectedRoute requiredRole="member"><MemberBookingDetail /></ProtectedRoute>} />
         <Route path="/membership" element={<Membership />} />
         <Route path="/membership/comparison" element={<MembershipComparison />} />
         <Route path="/membership/transaction/:planId" element={<MembershipTransaction />} />
@@ -72,8 +80,13 @@ function App() {
         <Route path="/driver/profile" element={<DriverRouteGuard><DriverProfile /></DriverRouteGuard>} />
         <Route path="/member/profile" element={<ProtectedRoute requiredRole="member"><MemberProfile /></ProtectedRoute>} />
         <Route path="/driver/dashboard" element={<DriverRouteGuard><DriverDashboard /></DriverRouteGuard>} />
+        <Route path="/driver/trips/:id" element={<DriverRouteGuard><DriverTrip /></DriverRouteGuard>} />
         <Route path="/admin/dashboard" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
         <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
+        <Route path="/admin/tours" element={<AdminRouteGuard><AdminTours /></AdminRouteGuard>} />
+        <Route path="/admin/fleet" element={<AdminRouteGuard><AdminFleet /></AdminRouteGuard>} />
+        <Route path="/admin/invoices" element={<AdminRouteGuard><AdminInvoices /></AdminRouteGuard>} />
+        <Route path="/admin/tracking" element={<AdminRouteGuard><AdminTracking /></AdminRouteGuard>} />
         <Route path="/admin/reviews" element={<AdminRouteGuard><AdminReviewModeration /></AdminRouteGuard>} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />

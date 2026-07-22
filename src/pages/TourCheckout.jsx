@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
-import { createBooking, calculateTourPrice, createYocoPayment, formatTourPrice } from "../lib/api";
+import { createBooking, calculateTourPrice, createYocoPayment, formatTourPrice, getMemberSubscriptions } from "../lib/api";
+import { applyMembershipDiscount, getMembershipDiscountLabel } from "../lib/pricing";
 import BackToTop from "../components/BackToTop";
 
 function TourCheckout() {
@@ -11,10 +12,12 @@ function TourCheckout() {
     firstName: "",
     lastName: "",
     email: "",
-    phone: ""
+    phone: "",
+    pickupAddress: ""
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [memberTier, setMemberTier] = useState(null);
 
   const { pax, date, time, tour, drivers, driver } = location.state || {};
   const selectedDriver = drivers?.[0] || driver || null;
@@ -25,10 +28,26 @@ function TourCheckout() {
     }
   }, [pax, date, tour, id, navigate]);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await getMemberSubscriptions();
+        const active = (data || []).find((s) => s.status === "active");
+        setMemberTier(active?.tier || null);
+      } catch {
+        setMemberTier(null);
+      }
+    })();
+  }, []);
+
   if (!pax || !date || !tour) return null;
 
-  const pricePerPerson = calculateTourPrice(tour, pax);
+  const basePerPerson = calculateTourPrice(tour, pax);
+  const pricePerPerson = memberTier
+    ? applyMembershipDiscount(basePerPerson, memberTier)
+    : basePerPerson;
   const totalPrice = pricePerPerson * pax;
+  const discountLabel = getMembershipDiscountLabel(memberTier);
 
   const validate = () => {
     const newErrors = {};
@@ -40,6 +59,7 @@ function TourCheckout() {
       newErrors.email = "Invalid email format";
     }
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+    if (!formData.pickupAddress.trim()) newErrors.pickupAddress = "Pickup address is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -76,7 +96,8 @@ function TourCheckout() {
         group_size: pax,
         price_per_person: pricePerPerson,
         total_price: totalPrice,
-        status: "reserved"
+        status: "reserved",
+        pickup_address: formData.pickupAddress.trim(),
       };
 
       const { data: booking, error } = await createBooking(bookingData);
@@ -171,7 +192,14 @@ function TourCheckout() {
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ color: "var(--text-soft)" }}>Price per person</span>
-                    <strong>{formatTourPrice(pricePerPerson)}</strong>
+                    <strong>
+                      {formatTourPrice(pricePerPerson)}
+                      {discountLabel && basePerPerson !== pricePerPerson && (
+                        <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 400, color: "var(--text-soft)" }}>
+                          {discountLabel} (was {formatTourPrice(basePerPerson)})
+                        </span>
+                      )}
+                    </strong>
                   </div>
                   <div style={{
                     display: "flex",
@@ -236,6 +264,16 @@ function TourCheckout() {
                       style={{ width: "100%", padding: "0.75rem", marginTop: "0.35rem", borderRadius: "8px", border: "1px solid var(--border-soft)" }}
                     />
                     {errors.phone && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.phone}</p>}
+                  </div>
+                  <div style={{ marginTop: "1rem" }}>
+                    <label>Pickup address *</label>
+                    <input
+                      value={formData.pickupAddress}
+                      onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
+                      placeholder="Hotel / address for pickup"
+                      style={{ width: "100%", padding: "0.75rem", marginTop: "0.35rem", borderRadius: "8px", border: "1px solid var(--border-soft)" }}
+                    />
+                    {errors.pickupAddress && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.pickupAddress}</p>}
                   </div>
                 </div>
 

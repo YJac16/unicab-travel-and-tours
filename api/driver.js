@@ -43,17 +43,21 @@ router.get('/bookings', async (req, res) => {
       .from('bookings')
       .select(BOOKING_SELECT)
       .eq('driver_id', driverId)
-      .eq('status', 'confirmed')
-      .gte('booking_date', today)
+      .in('status', ['confirmed', 'pending', 'reserved', 'completed'])
       .order('booking_date', { ascending: true });
 
     if (error) {
       throw error;
     }
 
+    // Prefer upcoming / active trips first; still return recent completed
+    const rows = data || [];
+    const active = rows.filter((b) => b.booking_date >= today && b.status !== 'cancelled');
+    const past = rows.filter((b) => b.booking_date < today || b.status === 'completed');
+
     res.json({
       success: true,
-      data: data || []
+      data: [...active, ...past.filter((b) => !active.includes(b))],
     });
   } catch (error) {
     console.error('Error fetching driver bookings:', error);
@@ -280,6 +284,163 @@ router.delete('/unavailability/:date', async (req, res) => {
       error: 'Failed to remove blocked date',
       message: error.message
     });
+  }
+});
+
+const VALID_TRIP_STATUSES = ['assigned', 'en_route_pickup', 'on_tour', 'completed', 'cancelled'];
+
+const DETAIL_SELECT = `
+  *,
+  tour:tours(*),
+  vehicle:vehicles(id, label, type, status),
+  customer:profiles!bookings_user_id_fkey(id, email, full_name, avatar_url)
+`;
+
+// GET /api/driver/bookings/:id
+router.get('/bookings/:id', async (req, res) => {
+  try {
+    const driverId = req.user.driverId;
+    if (!driverId) {
+      return res.status(400).json({ success: false, error: 'Driver profile not linked' });
+    }
+    if (!isSupabaseConfigured()) {
+      return res.status(501).json({ success: false, error: 'Supabase not configured' });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data, error } = await supabaseAdmin
+      .from('bookings')
+      .select(DETAIL_SELECT)
+      .eq('id', req.params.id)
+      .eq('driver_id', driverId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) return res.status(404).json({ success: false, error: 'Booking not found' });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error fetching driver booking:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch booking', message: error.message });
+  }
+});
+
+// PATCH /api/driver/bookings/:id/trip-status
+router.patch('/bookings/:id/trip-status', async (req, res) => {
+  try {
+    const driverId = req.user.driverId;
+    const { trip_status } = req.body || {};
+    if (!driverId) {
+      return res.status(400).json({ success: false, error: 'Driver profile not linked' });
+    }
+    if (!VALID_TRIP_STATUSES.includes(trip_status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid trip_status. Must be one of: ${VALID_TRIP_STATUSES.join(', ')}`,
+      });
+    }
+    if (!isSupabaseConfigured()) {
+      return res.status(501).json({ success: false, error: 'Supabase not configured' });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data: existing, error: findErr } = await supabaseAdmin
+      .from('bookings')
+      .select('id, vehicle_id, trip_status')
+      .eq('id', req.params.id)
+      .eq('driver_id', driverId)
+      .maybeSingle();
+
+    if (findErr) throw findErr;
+    if (!existing) return res.status(404).json({ success: false, error: 'Booking not found' });
+
+    const updates = {
+      trip_status,
+      updated_at: new Date().toISOString(),
+    };
+    if (trip_status === 'completed') {
+      updates.status = 'completed';
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('bookings')
+      .update(updates)
+      .eq('id', req.params.id)
+      .eq('driver_id', driverId)
+      .select(DETAIL_SELECT)
+      .single();
+
+    if (error) throw error;
+
+    // Free vehicle when trip ends
+    if ((trip_status === 'completed' || trip_status === 'cancelled') && existing.vehicle_id) {
+      await supabaseAdmin
+        .from('vehicles')
+        .update({ status: 'available', updated_at: new Date().toISOString() })
+        .eq('id', existing.vehicle_id)
+        .neq('status', 'out');
+    }
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error updating trip status:', error);
+    res.status(500).json({ success: false, error: 'Failed to update trip status', message: error.message });
+  }
+});
+
+// POST /api/driver/bookings/:id/location — live GPS upsert
+router.post('/bookings/:id/location', async (req, res) => {
+  try {
+    const driverId = req.user.driverId;
+    const { lat, lng, heading } = req.body || {};
+    if (!driverId) {
+      return res.status(400).json({ success: false, error: 'Driver profile not linked' });
+    }
+    if (typeof lat !== 'number' || typeof lng !== 'number') {
+      return res.status(400).json({ success: false, error: 'lat and lng numbers are required' });
+    }
+    if (!isSupabaseConfigured()) {
+      return res.status(501).json({ success: false, error: 'Supabase not configured' });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data: booking, error: findErr } = await supabaseAdmin
+      .from('bookings')
+      .select('id, trip_status')
+      .eq('id', req.params.id)
+      .eq('driver_id', driverId)
+      .maybeSingle();
+
+    if (findErr) throw findErr;
+    if (!booking) return res.status(404).json({ success: false, error: 'Booking not found' });
+    if (!['en_route_pickup', 'on_tour'].includes(booking.trip_status)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tracking only allowed while en_route_pickup or on_tour',
+      });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('driver_locations')
+      .upsert(
+        {
+          booking_id: booking.id,
+          driver_id: driverId,
+          lat,
+          lng,
+          heading: typeof heading === 'number' ? heading : null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'booking_id' }
+      )
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error upserting location:', error);
+    res.status(500).json({ success: false, error: 'Failed to update location', message: error.message });
   }
 });
 

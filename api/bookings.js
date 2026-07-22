@@ -209,6 +209,12 @@ router.post('/', optionalAuth, async (req, res) => {
         ? String(status).toLowerCase()
         : 'reserved';
 
+    const {
+      pickup_address,
+      pickup_lat,
+      pickup_lng,
+    } = req.body || {};
+
     const insertPayload = {
       tour_id,
       driver_id: finalDriverId,
@@ -223,7 +229,11 @@ router.post('/', optionalAuth, async (req, res) => {
       price_per_person: Number(price_per_person) || 0,
       total_price: Number(total_price) || 0,
       status: bookingStatus,
-      payment_status: 'unpaid'
+      payment_status: 'unpaid',
+      pickup_address: pickup_address?.trim() || null,
+      pickup_lat: pickup_lat != null && pickup_lat !== '' ? Number(pickup_lat) : null,
+      pickup_lng: pickup_lng != null && pickup_lng !== '' ? Number(pickup_lng) : null,
+      trip_status: finalDriverId ? 'assigned' : null,
     };
 
     const { data: booking, error } = await supabaseAdmin
