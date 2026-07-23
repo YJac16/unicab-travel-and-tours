@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import ThemeToggle from './ThemeToggle';
 
 function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -47,10 +48,6 @@ function ProfileDropdown() {
     setIsOpen(false);
     await signOut();
     navigate('/');
-    // Small delay to ensure state updates before reload
-    setTimeout(() => {
-      window.location.reload();
-    }, 100);
   };
 
   const getDashboardPath = () => {
@@ -174,11 +171,11 @@ function ProfileDropdown() {
             position: 'absolute',
             top: 'calc(100% + 0.5rem)',
             right: 0,
-            background: 'white',
+            background: 'var(--bg-elevated)',
             border: '1px solid var(--border-soft)',
             borderRadius: '12px',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-            minWidth: '200px',
+            boxShadow: 'var(--shadow-soft)',
+            minWidth: '220px',
             zIndex: 1000,
             overflow: 'hidden'
           }}
@@ -203,7 +200,7 @@ function ProfileDropdown() {
                   marginTop: '0.5rem',
                   padding: '0.25rem 0.5rem',
                   background: 'var(--accent-gold)',
-                  color: 'white',
+                  color: '#fff',
                   borderRadius: '4px',
                   fontSize: '0.7rem',
                   textTransform: 'uppercase',
@@ -216,6 +213,21 @@ function ProfileDropdown() {
           </div>
 
           <div style={{ padding: '0.5rem' }}>
+            <div style={{ padding: '0.5rem 1rem 0.75rem' }}>
+              <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
+                Appearance
+              </div>
+              <ThemeToggle />
+            </div>
+
+            <div
+              style={{
+                height: '1px',
+                background: 'var(--border-soft)',
+                margin: '0.25rem 0 0.5rem'
+              }}
+            />
+
             {dashboardPath && (
               <Link
                 to={dashboardPath}
@@ -295,7 +307,7 @@ function ProfileDropdown() {
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                Profile
+                Profile & settings
               </div>
             </Link>
 
@@ -332,7 +344,7 @@ function ProfileDropdown() {
                 padding: '0.75rem 1rem',
                 background: 'transparent',
                 border: 'none',
-                color: '#e74c3c',
+                color: '#c0392b',
                 fontSize: '0.9rem',
                 cursor: 'pointer',
                 borderRadius: '8px',
@@ -342,7 +354,7 @@ function ProfileDropdown() {
                 gap: '0.5rem'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#fee';
+                e.currentTarget.style.background = 'var(--bg-soft)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = 'transparent';

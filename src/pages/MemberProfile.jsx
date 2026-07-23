@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { updateMemberProfile } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import ProfileDropdown from '../components/ProfileDropdown';
+import HubChromeActions from '../components/HubChromeActions';
+import ThemeToggle from '../components/ThemeToggle';
 import BackToTop from '../components/BackToTop';
 
 function MemberProfile() {
@@ -52,11 +54,19 @@ function MemberProfile() {
           <Link to="/" className="logo">
             <img src="/logo-white.png" alt="UNICAB" className="logo-img" />
           </Link>
-          <ProfileDropdown />
+          <div className="hub-header-actions" style={{ marginLeft: 'auto' }}>
+            <HubChromeActions />
+            <ProfileDropdown />
+          </div>
         </div>
       </header>
       <main className="container" style={{ padding: '2rem 1rem 4rem', maxWidth: 560 }}>
         <h1>My profile</h1>
+        <div className="settings-panel" style={{ marginBottom: '1.5rem' }}>
+          <h2 style={{ fontSize: '1.1rem', marginTop: 0 }}>Appearance</h2>
+          <p style={{ color: 'var(--text-soft)', fontSize: '0.9rem' }}>Light by default. Your choice is saved.</p>
+          <ThemeToggle />
+        </div>
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1rem' }}>
           <label>
             Full name

@@ -18,6 +18,12 @@ const serviceKey =
 
 const USERS = [
   {
+    email: 'yaseenjacobs97@gmail.com',
+    password: 'Yaseen97',
+    role: 'admin',
+    full_name: 'Yaseen Jacobs',
+  },
+  {
     email: 'admin@unicabtravel.co.za',
     password: 'Admin123!',
     role: 'admin',
@@ -130,6 +136,11 @@ function printCredentials() {
   console.log(`
 === Hub test logins ===
 Sign in at: /login  (or https://www.unicabtraveltours.com/login)
+
+Owner Admin
+  Email:    yaseenjacobs97@gmail.com
+  Password: Yaseen97
+  Hub:      /admin/dashboard
 
 Admin
   Email:    admin@unicabtravel.co.za

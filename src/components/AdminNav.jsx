@@ -1,36 +1,43 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import ProfileDropdown from './ProfileDropdown';
+import HubChromeActions from './HubChromeActions';
 
 const ADMIN_LINKS = [
-  { to: '/admin/dashboard', label: 'Bookings & Drivers' },
-  { to: '/admin/tours', label: 'Tours & Pricing' },
+  { to: '/admin/dashboard', label: 'Bookings' },
+  { to: '/admin/tours', label: 'Tours' },
   { to: '/admin/fleet', label: 'Fleet' },
   { to: '/admin/invoices', label: 'Invoices' },
-  { to: '/admin/tracking', label: 'Live Tracking' },
+  { to: '/admin/tracking', label: 'Tracking' },
 ];
 
 export default function AdminNav() {
   const { pathname } = useLocation();
   return (
-    <header className="site-header">
-      <div className="container header-inner" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
+    <header className="site-header hub-header">
+      <div className="container header-inner hub-header-inner">
         <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
           <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
         </Link>
-        <nav style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
+        <nav className="hub-nav" aria-label="Admin">
           {ADMIN_LINKS.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={pathname.startsWith(link.to) ? 'btn btn-primary' : 'btn btn-outline'}
-              style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+              className={
+                pathname.startsWith(link.to)
+                  ? 'hub-nav-link hub-nav-link-active'
+                  : 'hub-nav-link'
+              }
             >
               {link.label}
             </Link>
           ))}
         </nav>
-        <ProfileDropdown />
+        <div className="hub-header-actions">
+          <HubChromeActions />
+          <ProfileDropdown />
+        </div>
       </div>
     </header>
   );

@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { getMemberBookings, getMemberSubscriptions, getMemberInvoices } from '../lib/api';
 import { membershipPlans } from '../data';
 import ProfileDropdown from '../components/ProfileDropdown';
+import HubChromeActions from '../components/HubChromeActions';
 import BackToTop from '../components/BackToTop';
 import LiveMap from '../components/LiveMap';
 
@@ -51,8 +52,9 @@ export default function MemberDashboard() {
           <Link to="/" className="logo">
             <img src="/logo-white.png" alt="UNICAB" className="logo-img" />
           </Link>
-          <nav style={{ display: 'flex', gap: '0.75rem', marginLeft: 'auto', alignItems: 'center' }}>
-            <Link to="/member/subscriptions" className="btn btn-outline" style={{ fontSize: '0.8rem' }}>Subscriptions</Link>
+          <nav className="hub-header-actions" style={{ marginLeft: 'auto' }}>
+            <Link to="/member/subscriptions" className="btn btn-outline btn-compact hub-chrome-btn">Subscriptions</Link>
+            <HubChromeActions />
             <ProfileDropdown />
           </nav>
         </div>

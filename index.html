@@ -11,6 +11,16 @@
       name="description"
       content="UNICAB Travel & Tours offers premium private transfers and bespoke guided tours across Cape Town and the Western Cape. Luxury vehicles, professional drivers, seamless service."
     />
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('unicab-theme');
+          document.documentElement.dataset.theme = t === 'dark' ? 'dark' : 'light';
+        } catch (e) {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
 </head>
 <body>
     <div id="root"></div>

@@ -8,6 +8,7 @@ import {
 } from '../lib/api';
 import { membershipPlans } from '../data';
 import ProfileDropdown from '../components/ProfileDropdown';
+import HubChromeActions from '../components/HubChromeActions';
 import BackToTop from '../components/BackToTop';
 
 const TIER_STYLES = {
@@ -77,8 +78,9 @@ export default function MemberSubscriptions() {
           <Link to="/" className="logo">
             <img src="/logo-white.png" alt="UNICAB" className="logo-img" />
           </Link>
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <Link to="/member/dashboard" className="btn btn-outline" style={{ fontSize: '0.8rem' }}>Dashboard</Link>
+          <div className="hub-header-actions" style={{ marginLeft: 'auto' }}>
+            <Link to="/member/dashboard" className="btn btn-outline btn-compact hub-chrome-btn">Dashboard</Link>
+            <HubChromeActions />
             <ProfileDropdown />
           </div>
         </div>

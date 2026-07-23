@@ -192,45 +192,46 @@ function Login() {
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
+          <Link to="/" className="btn btn-outline btn-compact hub-chrome-btn" style={{ marginLeft: 'auto' }}>
+            Home
+          </Link>
         </div>
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem" }}>
+        <section className="section" style={{ paddingTop: "7rem", paddingBottom: "4rem" }}>
           <div className="container">
-            <div style={{ maxWidth: "500px", margin: "0 auto" }}>
-              <div style={{ 
-                background: "white", 
-                padding: "2rem", 
-                borderRadius: "12px",
-                border: "1px solid var(--border-soft)",
-                boxShadow: "var(--shadow-soft)"
-              }}>
-                <h1 style={{ marginTop: 0, marginBottom: "1rem" }}>Sign In</h1>
-                <p style={{ color: "var(--text-soft)", marginBottom: "2rem" }}>
-                  Sign in to access your account. Works for Admin, Driver, and Member accounts.
+            <div style={{ maxWidth: "440px", margin: "0 auto" }}>
+              <div className="login-card">
+                <p className="eyebrow" style={{ marginBottom: "0.5rem" }}>UNICAB</p>
+                <h1 style={{ marginTop: 0, marginBottom: "0.5rem" }}>Sign in</h1>
+                <p style={{ color: "var(--text-soft)", marginBottom: "1.75rem", fontSize: "0.95rem" }}>
+                  Access your admin, driver, or member hub.
                 </p>
 
                 {error && (
                   <div style={{
-                    padding: "1rem",
-                    background: "#fee",
-                    border: "1px solid #fcc",
+                    padding: "0.85rem 1rem",
+                    background: "var(--accent-gold-soft)",
+                    border: "1px solid var(--border-gold)",
                     borderRadius: "8px",
-                    marginBottom: "1.5rem",
-                    color: "#c33"
+                    marginBottom: "1.25rem",
+                    color: "var(--text-main)",
+                    fontSize: "0.9rem"
                   }}>
                     {error}
                   </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
-                  <div style={{ marginBottom: "1.5rem" }}>
+                  <div style={{ marginBottom: "1.25rem" }}>
                     <label htmlFor="login-email" style={{ 
                       display: "block", 
-                      marginBottom: "0.5rem", 
-                      fontSize: "0.9rem", 
-                      fontWeight: "500" 
+                      marginBottom: "0.4rem", 
+                      fontSize: "0.8rem",
+                      letterSpacing: "0.04em",
+                      textTransform: "uppercase",
+                      color: "var(--text-muted)"
                     }}>
                       Email
                     </label>
@@ -242,22 +243,17 @@ function Login() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      style={{
-                        width: "100%",
-                        padding: "0.75rem",
-                        border: "1px solid var(--border-soft)",
-                        borderRadius: "8px",
-                        fontSize: "0.9rem"
-                      }}
                     />
                   </div>
 
                   <div style={{ marginBottom: "1.5rem" }}>
                     <label htmlFor="login-password" style={{ 
                       display: "block", 
-                      marginBottom: "0.5rem", 
-                      fontSize: "0.9rem", 
-                      fontWeight: "500" 
+                      marginBottom: "0.4rem", 
+                      fontSize: "0.8rem",
+                      letterSpacing: "0.04em",
+                      textTransform: "uppercase",
+                      color: "var(--text-muted)"
                     }}>
                       Password
                     </label>
@@ -277,12 +273,12 @@ function Login() {
                     disabled={loading || googleLoading}
                     style={{ 
                       width: "100%", 
-                      fontSize: "1rem", 
-                      padding: "1rem",
+                      fontSize: "0.95rem", 
+                      padding: "0.9rem",
                       marginBottom: "1rem"
                     }}
                   >
-                    {loading ? "Signing in..." : "Sign In"}
+                    {loading ? "Signing in…" : "Sign in"}
                   </button>
                 </form>
 

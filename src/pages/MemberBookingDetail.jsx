@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getMemberBooking } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import ProfileDropdown from '../components/ProfileDropdown';
+import HubChromeActions from '../components/HubChromeActions';
 import LiveMap from '../components/LiveMap';
 import BackToTop from '../components/BackToTop';
 import TourReviewForm from '../components/TourReviewForm';
@@ -62,7 +63,10 @@ export default function MemberBookingDetail() {
           <Link to="/member/dashboard" className="logo">
             <img src="/logo-white.png" alt="UNICAB" className="logo-img" />
           </Link>
-          <ProfileDropdown />
+          <div className="hub-header-actions" style={{ marginLeft: 'auto' }}>
+            <HubChromeActions />
+            <ProfileDropdown />
+          </div>
         </div>
       </header>
       <main className="container" style={{ padding: '2rem 1rem 4rem', maxWidth: 720 }}>

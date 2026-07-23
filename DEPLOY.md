@@ -33,6 +33,7 @@ node scripts/ensure-hub-test-users.js
 
 | Role | Email | Password | Hub |
 |------|--------|----------|-----|
+| Owner Admin | yaseenjacobs97@gmail.com | Yaseen97 | /admin/dashboard |
 | Admin | admin@unicabtravel.co.za | Admin123! | /admin/dashboard |
 | Driver | driver@unicabtravel.co.za | Driver123! | /driver/dashboard |
 | Client | member@unicabtravel.co.za | Member123! | /member/dashboard |

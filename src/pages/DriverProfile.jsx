@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import ProfileDropdown from '../components/ProfileDropdown';
+import HubChromeActions from '../components/HubChromeActions';
+import ThemeToggle from '../components/ThemeToggle';
 import BackToTop from '../components/BackToTop';
 import PasswordInput from '../components/PasswordInput';
 import { useAuth } from '../contexts/AuthContext';
@@ -289,7 +291,8 @@ function DriverProfile() {
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+          <div className="hub-header-actions" style={{ marginLeft: 'auto' }}>
+            <HubChromeActions />
             <ProfileDropdown />
           </div>
         </div>
@@ -311,6 +314,14 @@ function DriverProfile() {
                 <p style={{ color: "var(--text-soft)" }}>
                   Manage your driver account and contact information
                 </p>
+              </div>
+
+              <div className="settings-panel" style={{ marginBottom: "2rem" }}>
+                <h2 style={{ fontSize: "1.2rem", marginTop: 0, marginBottom: "0.75rem" }}>Appearance</h2>
+                <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginTop: 0 }}>
+                  Choose light or dark. Defaults to light on first visit.
+                </p>
+                <ThemeToggle />
               </div>
 
               {success && (

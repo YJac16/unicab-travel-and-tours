@@ -1,5 +1,6 @@
 /* Reset & Theme */
-:root {
+:root,
+[data-theme="light"] {
   --bg-main: #ffffff;
   --bg-elevated: #fafafa;
   --bg-soft: #f8f8f8;
@@ -23,6 +24,30 @@
   --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-med: 300ms cubic-bezier(0.4, 0, 0.2, 1);
   --nav-height: 85px;
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --input-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  --bg-main: #121212;
+  --bg-elevated: #1a1a1a;
+  --bg-soft: #222222;
+  --accent-gold: #d4b56a;
+  --accent-gold-bright: #e0c078;
+  --accent-gold-soft: rgba(212, 181, 106, 0.16);
+  --accent-gold-light: rgba(212, 181, 106, 0.08);
+  --accent-teal: #d4b56a;
+  --text-main: #f2f0eb;
+  --text-soft: #c8c4bc;
+  --text-muted: #9a958c;
+  --border-soft: rgba(255, 255, 255, 0.1);
+  --border-gold: rgba(212, 181, 106, 0.35);
+  --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.45);
+  --shadow-medium: 0 8px 32px rgba(0, 0, 0, 0.55);
+  --shadow-luxury: 0 12px 40px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 8px 24px rgba(212, 181, 106, 0.2);
+  --header-bg: rgba(18, 18, 18, 0.94);
+  --input-bg: #1a1a1a;
 }
 
 *,
@@ -38,11 +63,12 @@ html {
 body {
   margin: 0;
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-  background: #ffffff;
+  background: var(--bg-main);
   color: var(--text-main);
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   font-weight: 400;
+  transition: background-color var(--transition-med), color var(--transition-med);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -200,9 +226,9 @@ body {
   top: 0;
   z-index: 50;
   backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--header-bg);
   border-bottom: 1px solid var(--border-soft);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  box-shadow: var(--shadow-soft);
 }
 
 .header-inner {
@@ -1963,3 +1989,132 @@ textarea:focus-visible {
     transform: rotate(360deg);
   }
 }
+
+/* Hub chrome */
+.hub-header-inner {
+  gap: 1rem;
+}
+
+.hub-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.hub-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-soft);
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.hub-nav-link:hover {
+  color: var(--text-main);
+  border-color: var(--border-soft);
+}
+
+.hub-nav-link-active {
+  color: var(--text-main);
+  background: var(--accent-gold-soft);
+  border-color: var(--border-gold);
+}
+
+.hub-header-actions {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.hub-chrome-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hub-chrome-btn {
+  padding: 0.35rem 0.75rem !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-soft);
+}
+
+.theme-toggle-btn {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+}
+
+.theme-toggle-btn.active {
+  background: var(--accent-gold);
+  color: #fff;
+}
+
+.settings-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+}
+
+.login-card {
+  background: var(--bg-elevated);
+  padding: 2.25rem 2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+  box-shadow: var(--shadow-soft);
+}
+
+.login-card input,
+.login-card .password-input input {
+  background: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.login-card h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 900px) {
+  .hub-nav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .hub-header-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 0.75rem 0;
+  }
+}
+

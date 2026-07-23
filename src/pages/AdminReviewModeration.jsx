@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getPendingReviews, approveReview, rejectReview } from '../lib/api';
 import ProfileDropdown from '../components/ProfileDropdown';
+import HubChromeActions from '../components/HubChromeActions';
 import BackToTop from '../components/BackToTop';
 
 const formatStars = (rating) => {
@@ -108,7 +109,8 @@ function AdminReviewModeration() {
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center' }}>
+          <div className="hub-header-actions" style={{ marginLeft: 'auto' }}>
+            <HubChromeActions />
             <ProfileDropdown />
           </div>
         </div>
