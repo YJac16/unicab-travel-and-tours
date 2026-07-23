@@ -125,26 +125,7 @@ async function ensureUser(admin, spec) {
   return userId;
 }
 
-async function main() {
-  if (!url || !serviceKey) {
-    console.error('Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in .env');
-    process.exit(1);
-  }
-
-  const admin = createClient(url, serviceKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-
-  console.log('\nEnsuring hub test users...\n');
-  for (const spec of USERS) {
-    try {
-      await ensureUser(admin, spec);
-    } catch (err) {
-      console.error(`Failed for ${spec.email}:`, err.message || err);
-      process.exitCode = 1;
-    }
-  }
-
+function printCredentials() {
   console.log(`
 === Hub test logins ===
 Sign in at: /login  (or https://www.unicabtraveltours.com/login)
@@ -164,6 +145,45 @@ Client (member)
   Password: Member123!
   Hub:      /member/dashboard
 `);
+}
+
+async function main() {
+  if (!url || !serviceKey) {
+    console.error('Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY in .env');
+    printCredentials();
+    console.error(
+      'Fallback: create the users in Supabase Auth Dashboard and set profiles.role (see DEPLOY.md).'
+    );
+    process.exit(1);
+  }
+
+  const admin = createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+
+  console.log(`\nEnsuring hub test users against ${url}...\n`);
+  let failures = 0;
+  for (const spec of USERS) {
+    try {
+      await ensureUser(admin, spec);
+    } catch (err) {
+      failures += 1;
+      const cause = err?.cause?.code || err?.cause?.message || '';
+      console.error(`Failed for ${spec.email}:`, err.message || err, cause ? `(${cause})` : '');
+      process.exitCode = 1;
+    }
+  }
+
+  printCredentials();
+
+  if (failures) {
+    console.error(
+      'Could not create/update Auth users (often ENOTFOUND if SUPABASE_URL is wrong or the project was deleted).'
+    );
+    console.error(
+      'Fallback: fix SUPABASE_URL, or create the users in Supabase Auth Dashboard and set profiles.role — see DEPLOY.md.'
+    );
+  }
 }
 
 main().catch((err) => {

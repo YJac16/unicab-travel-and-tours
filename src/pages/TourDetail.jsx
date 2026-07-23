@@ -197,7 +197,7 @@ function TourDetail() {
               <li className="cta-nav">
                 <Link 
                   className="btn btn-primary btn-compact" 
-                  to="/book"
+                  to={`/tours/${tour.id}/booking`}
                   onClick={() => setNavOpen(false)}
                 >
                   Book Now

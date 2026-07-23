@@ -28,4 +28,26 @@ Default credentials (created/updated by the script):
 | Driver | driver@unicabtravel.co.za | Driver123! | /driver/dashboard |
 | Client | member@unicabtravel.co.za | Member123! | /member/dashboard |
 
-Sign in at `/login`. If the script cannot reach Supabase, create the same users in the Supabase Auth dashboard and set `profiles.role` to `admin`, `driver`, or `customer` (and a `drivers` row for the driver).
+Sign in at `/login` (https://www.unicabtraveltours.com/login).
+
+### Manual fallback (when script cannot reach Supabase)
+
+If `SUPABASE_URL` DNS fails (`ENOTFOUND`) or Auth API errors:
+
+1. Fix Project URL in `.env` / Vercel (`VITE_SUPABASE_URL`, `SUPABASE_URL`) to a live project: `https://YOUR_REF.supabase.co` (no `/rest/v1`), then re-run the script.
+2. Or create users in **Supabase Dashboard → Authentication → Users → Add user** with the emails/passwords above (confirm email).
+3. In SQL Editor, upsert roles (replace UUIDs with each Auth user id):
+
+```sql
+insert into profiles (id, email, full_name, role)
+values
+  ('ADMIN_USER_UUID', 'admin@unicabtravel.co.za', 'Admin User', 'admin'),
+  ('DRIVER_USER_UUID', 'driver@unicabtravel.co.za', 'Driver User', 'driver'),
+  ('MEMBER_USER_UUID', 'member@unicabtravel.co.za', 'Member User', 'customer')
+on conflict (id) do update
+set email = excluded.email, full_name = excluded.full_name, role = excluded.role;
+
+insert into drivers (user_id, name, email, phone, active)
+select 'DRIVER_USER_UUID', 'Driver User', 'driver@unicabtravel.co.za', '+27810000000', true
+where not exists (select 1 from drivers where user_id = 'DRIVER_USER_UUID');
+```
