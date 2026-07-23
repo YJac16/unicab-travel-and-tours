@@ -24,7 +24,7 @@ const verifyToken = (token) => {
   }
 };
 
-const { getSupabaseAdmin, isSupabaseConfigured } = require('../../lib/supabaseAdmin');
+const { getSupabaseAdmin, isSupabaseConfigured } = require('../../../lib/supabaseAdmin');
 
 const attachDriverId = async (userInfo) => {
   if (!userInfo || userInfo.role !== 'driver') {

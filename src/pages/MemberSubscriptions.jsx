@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getMemberSubscriptions,
-  createMemberSubscription,
+  createYocoPayment,
   cancelMemberSubscription,
 } from '../lib/api';
 import { membershipPlans } from '../data';
@@ -14,6 +14,12 @@ const TIER_STYLES = {
   explorer: { border: '#5b8c5a', bg: '#f3faf4', badge: '#5b8c5a' },
   frequent: { border: '#c9a227', bg: '#fffaf0', badge: '#c9a227' },
   elite: { border: '#1a1a2e', bg: '#f4f1ea', badge: '#1a1a2e' },
+};
+
+const TIER_CENTS = {
+  explorer: 29900,
+  frequent: 89900,
+  elite: 250000,
 };
 
 export default function MemberSubscriptions() {
@@ -35,16 +41,25 @@ export default function MemberSubscriptions() {
   }, [user]);
 
   const activate = async (tier) => {
-    setBusy(true);
-    setMessage('');
-    const { error } = await createMemberSubscription({ tier, payment_reference: `manual-${Date.now()}` });
-    setBusy(false);
-    if (error) {
-      setMessage(error.message || 'Could not activate plan');
+    if (!user?.id) {
+      setMessage('Please sign in first');
       return;
     }
-    setMessage('Membership activated');
-    load();
+    setBusy(true);
+    setMessage('');
+    const plan = membershipPlans.find((p) => p.id === tier);
+    const { data, error } = await createYocoPayment(TIER_CENTS[tier], null, {
+      kind: 'subscription',
+      tier,
+      userId: user.id,
+      description: `UNICAB ${plan?.name || tier} membership`,
+    });
+    setBusy(false);
+    if (error || !data?.redirectUrl) {
+      setMessage(error?.message || 'Could not start YOCO checkout');
+      return;
+    }
+    window.location.href = data.redirectUrl;
   };
 
   const cancel = async () => {
@@ -71,7 +86,7 @@ export default function MemberSubscriptions() {
       <main className="container" style={{ padding: '2rem 1rem 4rem' }}>
         <h1>Membership</h1>
         <p style={{ color: 'var(--text-soft)' }}>
-          Choose a plan with clear benefits. Discounts apply automatically at checkout when active.
+          Choose a plan with clear benefits. You will pay securely with YOCO. Discounts apply at tour checkout when active.
         </p>
         {message && <p style={{ color: 'var(--accent-gold)' }}>{message}</p>}
         {loading ? (
@@ -112,7 +127,7 @@ export default function MemberSubscriptions() {
                     </button>
                   ) : (
                     <button type="button" className="btn btn-primary" disabled={busy} onClick={() => activate(plan.id)} style={{ marginTop: '1rem' }}>
-                      {active ? 'Switch to this plan' : 'Activate'}
+                      {active ? 'Switch via YOCO' : 'Pay with YOCO'}
                     </button>
                   )}
                 </div>

@@ -88,7 +88,11 @@ function Login() {
       const { data: supabaseData, error: supabaseError } = await supabaseSignIn(email, password);
       
       if (!supabaseError && supabaseData?.user) {
-        // Supabase auth successful - fetch role and redirect
+        const redirectParam = searchParams.get('redirect');
+        if (redirectParam && redirectParam.startsWith('/')) {
+          navigate(redirectParam, { replace: true });
+          return;
+        }
         const redirectPath = await fetchRoleAndGetRedirect(supabaseData.user.id);
         navigate(redirectPath, { replace: true });
         return;

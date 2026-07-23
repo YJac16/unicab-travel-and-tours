@@ -1,7 +1,7 @@
 // Bookings API — custom Supabase booking system only
 const express = require('express');
 const router = express.Router();
-const { getSupabaseAdmin, isSupabaseConfigured } = require('../lib/supabaseAdmin');
+const { getSupabaseAdmin, isSupabaseConfigured } = require('../../lib/supabaseAdmin');
 
 const optionalAuth = async (req, res, next) => {
   const token = req.headers.authorization?.substring(7);
@@ -71,7 +71,7 @@ router.post('/', optionalAuth, async (req, res) => {
         success: false,
         error: 'Supabase not configured',
         message:
-          'Set SUPABASE_URL to https://YOUR_PROJECT.supabase.co (no /rest/v1) and SUPABASE_SERVICE_ROLE_KEY on Railway, then redeploy.'
+          'Set SUPABASE_URL to https://YOUR_PROJECT.supabase.co (no /rest/v1) and SUPABASE_SERVICE_ROLE_KEY on Vercel, then redeploy.'
       });
     }
 

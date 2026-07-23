@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireDriver } = require('./middleware/auth');
-const { getSupabaseAdmin, isSupabaseConfigured } = require('../lib/supabaseAdmin');
+const { getSupabaseAdmin, isSupabaseConfigured } = require('../../lib/supabaseAdmin');
 
 // Apply auth middleware to all routes
 router.use(requireAuth);

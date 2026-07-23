@@ -16,8 +16,7 @@ const navItems = [
   { id: "vehicles", label: "Vehicles", path: "/vehicles" },
   { id: "drivers", label: "Drivers", path: "/drivers" },
   { id: "reviews", label: "Reviews", path: "/reviews" },
-  // MEMBER FEATURES HIDDEN - Customer-facing only, no membership
-  // { id: "membership", label: "Membership", path: "/membership" },
+  { id: "membership", label: "Membership", path: "/membership" },
   { id: "about", label: "About", path: null },
   { id: "contact", label: "Contact", path: null }
 ];
@@ -514,7 +513,47 @@ function Home() {
           </div>
         </section>
 
-        {/* MEMBERSHIP SECTION HIDDEN - Customer-facing only, no member features */}
+        <section id="membership" className="section membership">
+          <div className="container section-inner">
+            <header className="section-header center">
+              <p className="eyebrow">Membership</p>
+              <h2>Exclusive Travel Benefits</h2>
+              <p className="section-intro max-720">
+                Join for priority booking, preferred rates, and exclusive access. Choose the plan that suits your travel.
+              </p>
+            </header>
+            <div className="cards-grid" aria-live="polite">
+              {membershipPlans.map((plan) => (
+                <article className="card soft" key={plan.id}>
+                  <div className="card-header">
+                    <h3 className="card-title">{plan.name}</h3>
+                    <span className="badge badge-gold">{plan.price}</span>
+                  </div>
+                  {plan.shortDescription && (
+                    <p style={{ fontSize: "0.9rem", color: "var(--text-soft)", marginBottom: "1rem", lineHeight: 1.6 }}>
+                      {plan.shortDescription}
+                    </p>
+                  )}
+                  <ul className="card-body">
+                    {plan.benefits.map((benefit) => (
+                      <li key={benefit}>{benefit}</li>
+                    ))}
+                  </ul>
+                  <div className="card-footer">
+                    <Link className="btn btn-primary" to={`/membership/transaction/${plan.id}`}>
+                      Join Now
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div style={{ marginTop: "2rem", textAlign: "center" }}>
+              <Link to="/membership/comparison" className="btn btn-outline">
+                Compare plans
+              </Link>
+            </div>
+          </div>
+        </section>
 
         <section id="safety" className="section safety-emphasis">
           <div className="container section-inner">

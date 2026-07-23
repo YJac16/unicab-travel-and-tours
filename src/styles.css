@@ -265,11 +265,13 @@ a[href="/login"].btn-outline {
 @media (max-width: 768px) {
   .header-inner {
     flex-wrap: nowrap;
+    gap: 0.5rem;
   }
   
   .header-inner > div:last-child {
     order: 2;
     margin-left: auto;
+    gap: 0.35rem;
   }
   
   .main-nav {
@@ -279,6 +281,19 @@ a[href="/login"].btn-outline {
   .profile-dropdown-container {
     position: relative;
     z-index: 100;
+  }
+
+  .header-sign-in.btn,
+  .header-sign-in.btn-outline,
+  a.header-sign-in {
+    padding: 0.35rem 0.7rem !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.04em !important;
+    white-space: nowrap;
+  }
+
+  .logo-img {
+    height: 48px;
   }
 }
 

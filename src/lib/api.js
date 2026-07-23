@@ -64,39 +64,8 @@ const getStaticDriverReviews = async (driverKey) => {
   return stored;
 };
 
-// API Base URL - use backend Express server
-// In development, Vite proxy handles /api routes, so we use relative URLs
-// In production, use VITE_API_URL if set, otherwise use relative URLs
-const getApiBaseUrl = () => {
-  const envUrl = import.meta.env.VITE_API_URL;
-  
-  // In development (localhost), always use relative URLs to use Vite proxy
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    const isLocalhost = hostname === 'localhost' || 
-                        hostname === '127.0.0.1' ||
-                        hostname.includes('localhost') ||
-                        hostname.includes('127.0.0.1');
-    
-    if (isLocalhost) {
-      // Force relative URLs in development to use Vite proxy
-      console.log('[API] Development mode detected, using relative URLs for Vite proxy');
-      return '';
-    }
-  }
-  
-  // In production, use VITE_API_URL if set
-  if (envUrl) {
-    // Remove trailing slash to avoid double slashes
-    const cleanUrl = envUrl.replace(/\/+$/, '');
-    console.log('[API] Using production API URL:', cleanUrl);
-    return cleanUrl;
-  }
-  
-  // Default to relative URLs
-  console.log('[API] No API URL set, using relative URLs');
-  return '';
-};
+// Same-origin /api on Vercel (and Vite proxy in local dev).
+const getApiBaseUrl = () => '';
 
 const API_BASE_URL = getApiBaseUrl();
 
@@ -643,14 +612,24 @@ export const getReviews = async (filters = {}) => {
 
 // YOCO payment only — redirects customer to Yoco hosted checkout
 export const createYocoPayment = async (amount, bookingRef, options = {}) => {
+  const body = {
+    amount,
+    description: options.description || undefined,
+  };
+
+  if (options.kind === 'subscription' || options.tier) {
+    body.kind = 'subscription';
+    body.tier = options.tier;
+    body.user_id = options.userId || options.user_id;
+    if (amount != null) body.amount = amount;
+  } else {
+    body.bookingRef = bookingRef;
+    body.booking_id = bookingRef;
+  }
+
   const result = await apiCall('/api/payments/create-payment', {
     method: 'POST',
-    body: JSON.stringify({
-      amount,
-      bookingRef,
-      booking_id: bookingRef,
-      description: options.description || undefined,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (result.error) return result;
@@ -678,7 +657,19 @@ export const createYocoPayment = async (amount, bookingRef, options = {}) => {
   };
 };
 
-export const confirmYocoPayment = async (bookingRef) => {
+export const confirmYocoPayment = async (bookingRef, options = {}) => {
+  if (options.kind === 'subscription' || options.tier) {
+    return apiCall('/api/payments/confirm', {
+      method: 'POST',
+      body: JSON.stringify({
+        kind: 'subscription',
+        tier: options.tier,
+        user_id: options.userId || options.user_id,
+        checkoutId: options.checkoutId,
+      }),
+    });
+  }
+
   return apiCall('/api/payments/confirm', {
     method: 'POST',
     body: JSON.stringify({ bookingRef, booking_id: bookingRef }),

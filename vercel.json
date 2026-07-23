@@ -4,12 +4,22 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/api/contact",
-      "destination": "/api/contact.js"
+      "source": "/api",
+      "destination": "/api/[[...path]]"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/[[...path]]"
     },
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/[[...path]].js": {
+      "maxDuration": 30,
+      "includeFiles": "{server/**,lib/**}"
+    }
+  }
 }

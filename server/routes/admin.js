@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireAdmin } = require('./middleware/auth');
-const { getSupabaseAdmin, isSupabaseConfigured } = require('../lib/supabaseAdmin');
+const { getSupabaseAdmin, isSupabaseConfigured } = require('../../lib/supabaseAdmin');
 
 const BOOKING_SELECT = `
   *,
@@ -631,7 +631,7 @@ router.delete('/drivers/:id/unavailability/:date', async (req, res) => {
 });
 
 const VALID_TRIP_STATUSES = ['assigned', 'en_route_pickup', 'on_tour', 'completed', 'cancelled'];
-const { buildInvoicePdf } = require('../lib/invoicePdf');
+const { buildInvoicePdf } = require('../../lib/invoicePdf');
 
 // =========================
 // TOURS CRUD

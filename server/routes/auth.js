@@ -10,7 +10,7 @@ const bcrypt = require('bcryptjs');
 const { generateToken, requireAuth, requireAdmin } = require('./middleware/auth');
 
 // Database connection
-const db = require('../lib/db');
+const db = require('../../lib/db');
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {

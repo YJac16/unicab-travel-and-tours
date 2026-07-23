@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 /**
  * Supabase JS expects the project root URL only, e.g.
  * https://xxxx.supabase.co
- * If Railway/env mistakenly includes /rest/v1, strip it to avoid /rest/v1/rest/v1/...
+ * If env mistakenly includes /rest/v1, strip it to avoid /rest/v1/rest/v1/...
  */
 export const normalizeSupabaseUrl = (rawUrl = '') => {
   let url = String(rawUrl || '').trim().replace(/\/+$/, '');

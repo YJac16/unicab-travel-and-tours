@@ -42,7 +42,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 **Wrong:** `https://xxxx.supabase.co/rest/v1` (causes `/rest/v1/rest/v1/...` 404s)  
 **Right:** `https://xxxx.supabase.co`
 
-**Production (Railway):** set the same values in the service variables, then **redeploy / rebuild**. Vite bakes `VITE_` vars at build time — changing them without a rebuild will leave the old URL in the live JS bundle.
+**Production (Vercel):** set the same values in Project → Settings → Environment Variables, then **redeploy**. Vite bakes `VITE_` vars at build time — changing them without a rebuild will leave the old URL in the live JS bundle.
 
 Server bookings/payments also need `SUPABASE_SERVICE_ROLE_KEY` (Settings → API → `service_role`). Without it, `/api/bookings` returns 501 "Supabase not configured".
 

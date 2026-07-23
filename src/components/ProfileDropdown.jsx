@@ -38,7 +38,7 @@ function ProfileDropdown() {
         visibility: 'visible',
         opacity: 1
       }}>
-        <Link to="/login" className="btn btn-outline">Sign In</Link>
+        <Link to="/login" className="btn btn-outline btn-compact header-sign-in">Sign In</Link>
       </div>
     );
   }
@@ -100,10 +100,7 @@ function ProfileDropdown() {
           minWidth: 'fit-content'
         }}
       >
-        <Link to="/login" className="btn btn-outline">Sign In</Link>
-        <Link to="/member/register" className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
-          Join
-        </Link>
+        <Link to="/login" className="btn btn-outline btn-compact header-sign-in">Sign In</Link>
       </div>
     );
   }
