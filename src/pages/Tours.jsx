@@ -3,6 +3,7 @@ import { tours } from "../data";
 import { Link } from "react-router-dom";
 import BackToTop from "../components/BackToTop";
 import ProfileDropdown from "../components/ProfileDropdown";
+import SafeImage from "../components/SafeImage";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -138,7 +139,7 @@ function Tours() {
                 <article key={tour.id} className="card tour-card">
                   {tour.image && (
                     <div className="tour-image-wrapper">
-                      <img src={tour.image} alt={tour.name} className="tour-image" />
+                      <SafeImage src={tour.image} alt={tour.name} className="tour-image" fallbackLabel={tour.name} />
                     </div>
                   )}
                   <div className="card-header">

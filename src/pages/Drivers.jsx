@@ -4,6 +4,7 @@ import { drivers as localDrivers } from "../data";
 import { getDrivers, getDriverReviews, getDriverReviewStats } from "../lib/api";
 import BackToTop from "../components/BackToTop";
 import DriverReviewForm from "../components/DriverReviewForm";
+import SafeImage from "../components/SafeImage";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -195,9 +196,10 @@ function Drivers() {
                   <article className="card soft" key={driver.name}>
                     <div className="card-header" style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexDirection: "row-reverse" }}>
                       {driver.image && (
-                        <img
+                        <SafeImage
                           src={driver.image}
                           alt={driver.name}
+                          fallbackLabel={driver.name}
                           style={{
                             width: "180px",
                             height: "180px",

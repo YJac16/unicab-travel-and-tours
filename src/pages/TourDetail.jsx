@@ -4,6 +4,7 @@ import { tours } from "../data";
 import { getTour, getTourReviews, getTourReviewStats } from "../lib/api";
 import BackToTop from "../components/BackToTop";
 import TourReviewForm from "../components/TourReviewForm";
+import SafeImage from "../components/SafeImage";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -217,9 +218,10 @@ function TourDetail() {
 
               {tour.image && (
                 <div style={{ marginBottom: "2rem", borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
-                  <img
+                  <SafeImage
                     src={tour.image}
                     alt={tour.name}
+                    fallbackLabel={tour.name}
                     style={{ width: "100%", height: "400px", objectFit: "cover", display: "block" }}
                   />
                 </div>

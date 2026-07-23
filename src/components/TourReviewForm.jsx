@@ -54,12 +54,19 @@ function TourReviewForm({ tourId, bookingId, onReviewSubmit }) {
     setErrors({});
 
     try {
+      const reviewerName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Guest";
+
       const { data, error } = await submitTourReview({
         tourId,
         bookingId: bookingId || null,
         userId: user.id,
         rating,
-        comment: comment.trim()
+        comment: comment.trim(),
+        reviewerName,
       });
 
       if (error) throw new Error(error.message || 'Failed to submit review');

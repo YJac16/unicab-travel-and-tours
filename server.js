@@ -185,15 +185,44 @@ app.use('/api/admin', adminRouter);
 app.use('/api/member', memberRouter);
 
 // Contact API endpoint
-app.post("/api/contact", (req, res) => {
+app.post("/api/contact", async (req, res) => {
   const payload = req.body || {};
-  console.log("New contact enquiry:", payload);
-  // TODO: Add email service integration here (e.g., SendGrid, Nodemailer, etc.)
-  return res.json({
-    ok: true,
-    message:
-      "Thank you. Your request has been received. Our team will respond with a detailed proposal shortly."
-  });
+  const name = String(payload.name || "").trim();
+  const email = String(payload.email || "").trim();
+  const phone = String(payload.phone || "").trim();
+  const message = String(payload.message || "").trim();
+
+  if (name.length < 2) {
+    return res.status(400).json({ ok: false, message: "Please provide your full name." });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ ok: false, message: "Please provide a valid email address." });
+  }
+  if (message.length < 10) {
+    return res.status(400).json({ ok: false, message: "Please provide a message (at least 10 characters)." });
+  }
+
+  try {
+    const { sendContactEmail } = require("./lib/sendContactEmail");
+    await sendContactEmail({ name, email, phone, message });
+    return res.json({
+      ok: true,
+      message:
+        "Thank you. Your request has been received. Our team will respond with a detailed proposal shortly.",
+    });
+  } catch (err) {
+    console.error("Contact email error:", err);
+    if (err.code === "CONFIG") {
+      return res.status(503).json({
+        ok: false,
+        message: "Contact email is not configured yet. Please email info@unicabtravel.co.za directly.",
+      });
+    }
+    return res.status(502).json({
+      ok: false,
+      message: err.message || "Failed to send email. Please try again.",
+    });
+  }
 });
 
 // Review API endpoint

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { vehicles } from "../data";
 import BackToTop from "../components/BackToTop";
+import SafeImage from "../components/SafeImage";
 
 function Vehicles() {
   const [navOpen, setNavOpen] = useState(false);
@@ -121,7 +122,7 @@ function Vehicles() {
                 <article className="card soft" key={vehicle.name}>
                   {vehicle.image && (
                     <div className="vehicle-image-wrapper">
-                      <img src={vehicle.image} alt={vehicle.name} className="vehicle-image" loading="lazy" />
+                      <SafeImage src={vehicle.image} alt={vehicle.name} className="vehicle-image" fallbackLabel={vehicle.name} />
                     </div>
                   )}
                   <div className="card-header">

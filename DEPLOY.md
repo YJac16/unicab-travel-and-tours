@@ -12,5 +12,12 @@
 3. Env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `YOCO_SECRET_KEY`, `NODE_ENV=production`
 4. Copy the public API URL into Vercel env `VITE_API_URL` (Production + Preview) and redeploy the frontend
 
-## Supabase
-Run migration `supabase/migrations/015_hubs_fleet_tracking_invoices.sql` in the SQL editor.
+## Contact form (Resend)
+
+Set on **Vercel** (Production + Preview) for `/api/contact`:
+
+- `RESEND_API_KEY` — from https://resend.com
+- `CONTACT_TO_EMAIL=info@unicabtravel.co.za`
+- `CONTACT_FROM_EMAIL=UNICAB Travel & Tours <onboarding@resend.dev>` (or your verified domain)
+
+Also set the same on the Express API host if contact is proxied there.

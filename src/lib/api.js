@@ -1499,7 +1499,7 @@ export const getPendingReviews = async (filterType = null) => {
 
   let query = supabase
     .from('tour_reviews')
-    .select('*, tours(name), bookings(id, customer_name, customer_email, date)')
+    .select('*')
     .eq('approved', false)
     .order('created_at', { ascending: false });
 
@@ -1507,7 +1507,7 @@ export const getPendingReviews = async (filterType = null) => {
 
   let driverQuery = supabase
     .from('driver_reviews')
-    .select('*, drivers(name), bookings(id, customer_name, customer_email, date)')
+    .select('*')
     .eq('approved', false)
     .order('created_at', { ascending: false });
 
@@ -1518,8 +1518,16 @@ export const getPendingReviews = async (filterType = null) => {
   }
 
   const allReviews = [
-    ...(tourReviews || []).map(r => ({ ...r, review_type: 'tour' })),
-    ...(driverReviews || []).map(r => ({ ...r, review_type: 'driver' }))
+    ...(tourReviews || []).map(r => ({
+      ...r,
+      review_type: 'tour',
+      tours: r.tour_id ? { name: String(r.tour_id) } : null,
+    })),
+    ...(driverReviews || []).map(r => ({
+      ...r,
+      review_type: 'driver',
+      drivers: r.driver_key || r.driver_id ? { name: String(r.driver_key || r.driver_id) } : null,
+    })),
   ];
 
   // Filter by type if specified

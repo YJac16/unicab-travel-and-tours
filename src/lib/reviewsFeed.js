@@ -1,0 +1,57 @@
+import { getTourReviews, getDriverReviews } from './api';
+import { tours, drivers, reviews as staticReviews } from '../data';
+
+/**
+ * Load a mixed feed of approved tour + driver reviews for marketing pages.
+ */
+export async function getPublicReviewsFeed(limit = 24) {
+  const tourResults = await Promise.all(
+    (tours || []).slice(0, 12).map(async (tour) => {
+      const { data } = await getTourReviews(tour.id);
+      return (data || []).map((r) => ({
+        ...r,
+        review_type: 'tour',
+        target_name: tour.name,
+        name: r.reviewer_name || r.name || 'Guest',
+        text: r.comment || r.text,
+        rating: r.rating || 5,
+      }));
+    })
+  );
+
+  const driverResults = await Promise.all(
+    (drivers || []).map(async (driver) => {
+      const key = driver.id || driver.name;
+      const { data } = await getDriverReviews(key);
+      return (data || []).map((r) => ({
+        ...r,
+        review_type: 'driver',
+        target_name: driver.name,
+        name: r.reviewer_name || r.name || 'Guest',
+        text: r.comment || r.text,
+        rating: r.rating || 5,
+      }));
+    })
+  );
+
+  const live = [...tourResults.flat(), ...driverResults.flat()].sort((a, b) => {
+    const da = new Date(a.created_at || 0).getTime();
+    const db = new Date(b.created_at || 0).getTime();
+    return db - da;
+  });
+
+  if (live.length) {
+    return live.slice(0, limit);
+  }
+
+  // Fallback to static marketing reviews
+  return (staticReviews || []).map((r, i) => ({
+    id: `static-${i}`,
+    name: r.name,
+    text: r.text,
+    rating: r.rating,
+    review_type: r.tourId ? 'tour' : 'driver',
+    target_name: r.tourId || r.driverId || '',
+    approved: true,
+  }));
+}

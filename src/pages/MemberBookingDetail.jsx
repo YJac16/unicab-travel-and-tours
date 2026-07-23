@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase';
 import ProfileDropdown from '../components/ProfileDropdown';
 import LiveMap from '../components/LiveMap';
 import BackToTop from '../components/BackToTop';
+import TourReviewForm from '../components/TourReviewForm';
+import DriverReviewForm from '../components/DriverReviewForm';
 
 export default function MemberBookingDetail() {
   const { id } = useParams();
@@ -105,6 +107,24 @@ export default function MemberBookingDetail() {
               lng={location?.lng != null ? Number(location.lng) : null}
               label={driver?.name || 'Driver'}
             />
+          </section>
+        )}
+
+        {(booking.status === 'completed' || booking.trip_status === 'completed') && (
+          <section style={{ marginTop: '1.5rem', display: 'grid', gap: '1rem' }}>
+            <h3>Leave a review</h3>
+            {booking.tour_id && (
+              <TourReviewForm
+                tourId={booking.tour_id || booking.tour?.id}
+                bookingId={booking.id}
+              />
+            )}
+            {(booking.driver_id || booking.driver?.id) && (
+              <DriverReviewForm
+                driverId={booking.driver_id || booking.driver?.id}
+                bookingId={booking.id}
+              />
+            )}
           </section>
         )}
       </main>

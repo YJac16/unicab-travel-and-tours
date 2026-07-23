@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { tours, vehicles, drivers, reviews, membershipPlans } from "../data";
+import { tours, vehicles, drivers, membershipPlans } from "../data";
 import { siteConfig } from "../config";
 import ProfileDropdown from "../components/ProfileDropdown";
+import SafeImage from "../components/SafeImage";
+import { getPublicReviewsFeed } from "../lib/reviewsFeed";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -26,8 +28,25 @@ function Home() {
   const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   const year = useMemo(() => new Date().getFullYear(), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setReviewsLoading(true);
+      const feed = await getPublicReviewsFeed(12);
+      if (!cancelled) {
+        setReviews(feed);
+        setReviewsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Back to top button visibility
   React.useEffect(() => {
@@ -89,11 +108,20 @@ function Home() {
         body: JSON.stringify(data)
       });
 
-      if (response.ok) {
-        setSuccessMsg("Thank you! We'll be in touch soon.");
+      let result = {};
+      try {
+        result = await response.json();
+      } catch {
+        result = {};
+      }
+
+      if (response.ok && result.ok !== false) {
+        setSuccessMsg(result.message || "Thank you! We'll be in touch soon.");
         e.target.reset();
       } else {
-        setErrors({ submit: "Something went wrong. Please try again." });
+        setErrors({
+          submit: result.message || result.error || "Something went wrong. Please try again.",
+        });
       }
     } catch (err) {
       setErrors({ submit: "Network error. Please try again." });
@@ -282,7 +310,7 @@ function Home() {
                 <article className="card tour-card soft" key={tour.id}>
                   {tour.image && (
                     <div className="tour-image-wrapper">
-                      <img src={tour.image} alt={tour.name} className="tour-image" loading="lazy" />
+                      <SafeImage src={tour.image} alt={tour.name} className="tour-image" fallbackLabel={tour.name} />
                     </div>
                   )}
                   <div className="card-header">
@@ -348,7 +376,7 @@ function Home() {
                 <article className="card soft" key={vehicle.name}>
                   {vehicle.image && (
                     <div className="vehicle-image-wrapper">
-                      <img src={vehicle.image} alt={vehicle.name} className="vehicle-image" loading="lazy" />
+                      <SafeImage src={vehicle.image} alt={vehicle.name} className="vehicle-image" fallbackLabel={vehicle.name} />
                     </div>
                   )}
                   <div className="card-header">
@@ -390,9 +418,10 @@ function Home() {
                 <article className="card soft" key={driver.name}>
                   <div className="card-header" style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexDirection: "row-reverse" }}>
                     {driver.image && (
-                      <img
+                      <SafeImage
                         src={driver.image}
                         alt={driver.name}
+                        fallbackLabel={driver.name}
                         style={{
                           width: "160px",
                           height: "160px",
@@ -448,12 +477,15 @@ function Home() {
               <h2>What Our Guests Say</h2>
             </header>
             <div className="cards-grid" aria-live="polite">
-              {reviews.map((review, index) => (
+              {reviewsLoading && <p style={{ textAlign: "center", gridColumn: "1 / -1" }}>Loading reviews…</p>}
+              {!reviewsLoading && reviews.map((review, index) => (
                 <article className="card soft" key={review.id || index}>
                   <div className="card-header">
                     <div>
                       <h3 className="card-title">{review.name}</h3>
-                      <p className="card-meta">{review.tourName}</p>
+                      <p className="card-meta">
+                        {review.target_name || review.tourName || (review.review_type === "driver" ? "Driver" : "Tour")}
+                      </p>
                     </div>
                     <div className="rating">
                       <span className="stars" aria-hidden="true">
@@ -461,13 +493,23 @@ function Home() {
                       </span>
                     </div>
                   </div>
-                  <p className="card-body">{review.text}</p>
+                  <p className="card-body">{review.text || review.comment}</p>
                   <div className="review-footer">
-                    <span className="chip">{review.tourName}</span>
-                    <span className="chip">Verified UNICAB traveller</span>
+                    <span className="chip">
+                      {review.review_type === "driver" ? "Driver review" : "Tour review"}
+                    </span>
+                    <span className="chip">UNICAB guest</span>
                   </div>
                 </article>
               ))}
+              {!reviewsLoading && !reviews.length && (
+                <p style={{ textAlign: "center", gridColumn: "1 / -1", color: "var(--text-soft)" }}>
+                  Be the first to leave a review after your tour.
+                </p>
+              )}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
+              <Link to="/reviews" className="btn btn-outline">See all reviews</Link>
             </div>
           </div>
         </section>
