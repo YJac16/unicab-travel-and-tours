@@ -3,6 +3,14 @@ const express = require('express');
 const crypto = require('crypto');
 const router = express.Router();
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../lib/supabaseAdmin');
+const { verifyYocoWebhook } = require('../../lib/yocoWebhook');
+const {
+  getYocoSecretKey,
+  getCheckout,
+  checkoutLooksPaid,
+  refundCheckout,
+} = require('../../lib/yocoApi');
+const { bookingEmailFields, BOOKING_EMAIL_SELECT } = require('../../lib/bookingFields');
 
 const MEMBERSHIP_AMOUNTS_CENTS = {
   explorer: 29900,
@@ -19,13 +27,6 @@ const getBaseUrl = (req) => {
   if (host) return `${proto}://${host}`.replace(/\/+$/, '');
   return 'https://www.unicabtraveltours.com';
 };
-
-const getYocoSecretKey = () =>
-  process.env.YOCO_SECRET_KEY ||
-  process.env.YOCO_LIVE_SECRET_KEY ||
-  process.env.YOCO_SECRET ||
-  process.env.YOCO_LIVE_KEY ||
-  null;
 
 const getYocoPublicKey = () =>
   process.env.YOCO_PUBLIC_KEY || process.env.YOCO_LIVE_PUBLIC_KEY || null;
@@ -59,6 +60,25 @@ async function activateSubscription({ userId, tier, checkoutId, paymentRef }) {
   return data;
 }
 
+async function sendPaidBookingEmails(booking) {
+  const fields = bookingEmailFields(booking);
+  if (!fields?.email) return;
+  const { sendBookingConfirmationEmail, sendOpsNotificationEmail } = require('../../lib/bookingEmail');
+  await sendBookingConfirmationEmail({
+    to: fields.email,
+    guestName: fields.name,
+    bookingId: fields.bookingId,
+    tourName: fields.tourName,
+    date: fields.date,
+    time: fields.time,
+    amountZar: fields.amount,
+  }).catch((e) => console.warn('Booking email failed:', e.message));
+  await sendOpsNotificationEmail({
+    subject: `Paid booking ${fields.bookingId}`,
+    text: `Booking ${fields.bookingId} paid for ${fields.email}`,
+  }).catch(() => {});
+}
+
 router.get('/status', (_req, res) => {
   const secret = getYocoSecretKey();
   const mode = secret
@@ -75,6 +95,9 @@ router.get('/status', (_req, res) => {
     configured: !!secret,
     mode,
     publicKeyConfigured: !!getYocoPublicKey(),
+    webhookSecretConfigured: !!(
+      process.env.YOCO_WEBHOOK_SECRET || process.env.YOCO_WEBHOOK_SECRET_PRIMARY
+    ),
     webhookPath: '/api/payments/webhook',
     createPaymentPath: '/api/payments/create-payment',
   });
@@ -155,8 +178,6 @@ router.post('/create-payment', async (req, res) => {
     let metadata;
 
     if (isSubscription) {
-      successUrl = `${baseUrl}/membership/success?tier=${encodeURIComponent(normalizedTier)}&checkoutId={CHECKOUT_ID}`;
-      // Yoco may not expand {CHECKOUT_ID}; also pass via our confirm flow
       successUrl = `${baseUrl}/membership/success?tier=${encodeURIComponent(normalizedTier)}`;
       cancelUrl = `${baseUrl}/membership/transaction/${encodeURIComponent(normalizedTier)}?cancelled=1`;
       metadata = {
@@ -265,6 +286,13 @@ router.post('/create-payment', async (req, res) => {
 
 router.post('/webhook', async (req, res) => {
   try {
+    const rawBody = req.rawBody != null ? req.rawBody : Buffer.from(JSON.stringify(req.body || {}));
+    const verified = verifyYocoWebhook(rawBody, req.headers || {});
+    if (!verified.ok) {
+      console.warn('YOCO webhook rejected:', verified.error);
+      return res.status(401).json({ success: false, error: verified.error || 'Invalid signature' });
+    }
+
     const payload = req.body || {};
     const eventType = payload.type || payload.event || payload.eventType;
     const data = payload.payload || payload.data || payload;
@@ -348,6 +376,18 @@ router.post('/webhook', async (req, res) => {
 
       const { error } = await query;
       if (error) console.error('Failed to update booking from YOCO webhook:', error);
+      else if (isPaid) {
+        try {
+          const { data: booking } = await supabaseAdmin
+            .from('bookings')
+            .select(BOOKING_EMAIL_SELECT)
+            .eq(bookingId ? 'id' : 'yoco_checkout_id', bookingId || paymentRef)
+            .maybeSingle();
+          await sendPaidBookingEmails(booking);
+        } catch (mailErr) {
+          console.warn('Post-payment email skipped:', mailErr.message);
+        }
+      }
     }
 
     return res.json({ success: true, received: true });
@@ -381,12 +421,36 @@ router.post('/confirm', async (req, res) => {
           error: 'user_id and tier are required for membership confirm',
         });
       }
+      if (!checkoutId) {
+        return res.status(400).json({
+          success: false,
+          error: 'checkoutId is required — payment must be verified with YOCO',
+        });
+      }
+
+      let checkout;
+      try {
+        checkout = await getCheckout(checkoutId);
+      } catch (err) {
+        return res.status(402).json({
+          success: false,
+          error: 'Could not verify YOCO checkout',
+          message: err.message,
+        });
+      }
+      if (!checkoutLooksPaid(checkout)) {
+        return res.status(402).json({
+          success: false,
+          error: 'Payment not completed yet',
+          status: checkout?.status || null,
+        });
+      }
 
       const data = await activateSubscription({
         userId: memberUserId,
         tier: String(tier).toLowerCase(),
-        checkoutId: checkoutId || null,
-        paymentRef: checkoutId || `yoco-${Date.now()}`,
+        checkoutId,
+        paymentRef: checkoutId,
       });
 
       return res.json({ success: true, data });
@@ -396,24 +460,148 @@ router.post('/confirm', async (req, res) => {
       return res.status(400).json({ success: false, error: 'bookingRef is required' });
     }
 
+    const { data: existing, error: findErr } = await supabaseAdmin
+      .from('bookings')
+      .select('id, payment_status, yoco_checkout_id, payment_reference')
+      .eq('id', bookingId)
+      .maybeSingle();
+    if (findErr) throw findErr;
+    if (!existing) {
+      return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
+
+    if (existing.payment_status === 'paid') {
+      const { data: paid } = await supabaseAdmin
+        .from('bookings')
+        .select(BOOKING_EMAIL_SELECT)
+        .eq('id', bookingId)
+        .maybeSingle();
+      return res.json({ success: true, data: paid, alreadyPaid: true });
+    }
+
+    const checkoutToVerify = checkoutId || existing.yoco_checkout_id || existing.payment_reference;
+    if (!checkoutToVerify) {
+      return res.status(400).json({
+        success: false,
+        error: 'checkoutId required to confirm unpaid booking',
+      });
+    }
+
+    let checkout;
+    try {
+      checkout = await getCheckout(checkoutToVerify);
+    } catch (err) {
+      return res.status(402).json({
+        success: false,
+        error: 'Could not verify YOCO checkout',
+        message: err.message,
+      });
+    }
+    if (!checkoutLooksPaid(checkout)) {
+      return res.status(402).json({
+        success: false,
+        error: 'Payment not completed yet',
+        status: checkout?.status || null,
+      });
+    }
+
     const { data, error } = await supabaseAdmin
       .from('bookings')
       .update({
         status: 'confirmed',
         payment_status: 'paid',
         paid_at: new Date().toISOString(),
+        payment_reference: checkoutToVerify,
+        yoco_checkout_id: checkoutToVerify,
       })
       .eq('id', bookingId)
-      .select()
+      .select(BOOKING_EMAIL_SELECT)
       .maybeSingle();
 
     if (error) throw error;
+
+    await sendPaidBookingEmails(data).catch(() => {});
+
     return res.json({ success: true, data });
   } catch (error) {
     console.error('Error confirming payment:', error);
     return res.status(500).json({
       success: false,
       error: 'Failed to confirm payment',
+      message: error.message,
+    });
+  }
+});
+
+// POST /api/payments/refund — admin-oriented refund by booking id
+router.post('/refund', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (!token || !isSupabaseConfigured()) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data: authData, error: authErr } = await supabaseAdmin.auth.getUser(token);
+    if (authErr || !authData?.user) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', authData.user.id)
+      .maybeSingle();
+    if (String(profile?.role || '').toLowerCase() !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Admin only' });
+    }
+
+    const { booking_id, bookingId, amount_cents } = req.body || {};
+    const id = booking_id || bookingId;
+    if (!id) {
+      return res.status(400).json({ success: false, error: 'booking_id is required' });
+    }
+
+    const { data: booking, error } = await supabaseAdmin
+      .from('bookings')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw error;
+    if (!booking) return res.status(404).json({ success: false, error: 'Booking not found' });
+
+    const checkoutId = booking.yoco_checkout_id || booking.payment_reference;
+    if (!checkoutId || booking.payment_status !== 'paid') {
+      return res.status(400).json({
+        success: false,
+        error: 'Booking has no paid YOCO checkout to refund',
+      });
+    }
+
+    await refundCheckout(checkoutId, {
+      amount: amount_cents != null ? amount_cents : undefined,
+    });
+
+    const { data: updated, error: upErr } = await supabaseAdmin
+      .from('bookings')
+      .update({
+        payment_status: 'refunded',
+        status: 'cancelled',
+        cancelled_at: new Date().toISOString(),
+        cancel_reason: 'admin_refund',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select('*')
+      .maybeSingle();
+    if (upErr) throw upErr;
+
+    return res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Refund error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to refund',
       message: error.message,
     });
   }

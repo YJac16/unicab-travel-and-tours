@@ -88,8 +88,13 @@ export default function MemberSubscriptions() {
       <main className="container" style={{ padding: '2rem 1rem 4rem' }}>
         <h1>Membership</h1>
         <p style={{ color: 'var(--text-soft)' }}>
-          Choose a plan with clear benefits. You will pay securely with YOCO. Discounts apply at tour checkout when active.
+          Plans are prepaid for one calendar month (not auto-renewing). When the period ends, pay again with YOCO to continue discounts at checkout.
         </p>
+        {active?.current_period_end && (
+          <p style={{ color: 'var(--accent-gold)' }}>
+            Active until {new Date(active.current_period_end).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+        )}
         {message && <p style={{ color: 'var(--accent-gold)' }}>{message}</p>}
         {loading ? (
           <p>Loading…</p>
@@ -125,11 +130,11 @@ export default function MemberSubscriptions() {
                   </ul>
                   {isActive ? (
                     <button type="button" className="btn btn-outline" disabled={busy} onClick={cancel} style={{ marginTop: '1rem' }}>
-                      Cancel plan
+                      End plan early
                     </button>
                   ) : (
                     <button type="button" className="btn btn-primary" disabled={busy} onClick={() => activate(plan.id)} style={{ marginTop: '1rem' }}>
-                      {active ? 'Switch via YOCO' : 'Pay with YOCO'}
+                      {active ? 'Switch (pay 1 month)' : 'Pay 1 month with YOCO'}
                     </button>
                   )}
                 </div>

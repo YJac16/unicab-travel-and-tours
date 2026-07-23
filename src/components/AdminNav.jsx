@@ -9,6 +9,8 @@ const ADMIN_LINKS = [
   { to: '/admin/fleet', label: 'Fleet' },
   { to: '/admin/invoices', label: 'Invoices' },
   { to: '/admin/tracking', label: 'Tracking' },
+  { to: '/admin/leads', label: 'Leads' },
+  { to: '/admin/reviews', label: 'Reviews' },
 ];
 
 export default function AdminNav() {

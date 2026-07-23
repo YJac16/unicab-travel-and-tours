@@ -346,7 +346,7 @@ router.patch('/bookings/:id/trip-status', async (req, res) => {
     const supabaseAdmin = getSupabaseAdmin();
     const { data: existing, error: findErr } = await supabaseAdmin
       .from('bookings')
-      .select('id, vehicle_id, trip_status')
+      .select('id, vehicle_id, trip_status, customer_email, customer_name, review_invite_sent_at, tour_id')
       .eq('id', req.params.id)
       .eq('driver_id', driverId)
       .maybeSingle();
@@ -379,6 +379,33 @@ router.patch('/bookings/:id/trip-status', async (req, res) => {
         .update({ status: 'available', updated_at: new Date().toISOString() })
         .eq('id', existing.vehicle_id)
         .neq('status', 'out');
+    }
+
+    if (trip_status === 'completed' && existing.customer_email && !existing.review_invite_sent_at) {
+      try {
+        let tourName = data?.tour?.name || null;
+        if (!tourName && existing.tour_id) {
+          const { data: tour } = await supabaseAdmin
+            .from('tours')
+            .select('name')
+            .eq('id', existing.tour_id)
+            .maybeSingle();
+          tourName = tour?.name || null;
+        }
+        const { sendReviewInviteEmail } = require('../../lib/bookingEmail');
+        await sendReviewInviteEmail({
+          to: existing.customer_email,
+          guestName: existing.customer_name,
+          bookingId: existing.id,
+          tourName,
+        });
+        await supabaseAdmin
+          .from('bookings')
+          .update({ review_invite_sent_at: new Date().toISOString() })
+          .eq('id', existing.id);
+      } catch (inviteErr) {
+        console.warn('Review invite email skipped:', inviteErr.message);
+      }
     }
 
     res.json({ success: true, data });

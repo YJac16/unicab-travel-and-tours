@@ -6,7 +6,10 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "node server.js",
+    "phase0": "node scripts/phase0-check.js",
+    "seed:tours": "node scripts/seed-tours-from-data.js",
+    "seed:users": "node scripts/ensure-hub-test-users.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.87.1",

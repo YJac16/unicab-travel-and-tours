@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRouteGuard } from "./components/AdminRouteGuard";
 import { DriverRouteGuard } from "./components/DriverRouteGuard";
@@ -8,7 +8,6 @@ import Tours from "./pages/Tours";
 import TourDetail from "./pages/TourDetail";
 import TourBooking from "./pages/TourBooking";
 import DriverSelection from "./pages/DriverSelection";
-import TourTransaction from "./pages/TourTransaction";
 import TourCheckout from "./pages/TourCheckout";
 import TourConfirmation from "./pages/TourConfirmation";
 import Vehicles from "./pages/Vehicles";
@@ -38,13 +37,18 @@ import MemberProfile from "./pages/MemberProfile";
 import AdminReviewModeration from "./pages/AdminReviewModeration";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import CookiePolicy from "./pages/CookiePolicy";
+import TermsOfService from "./pages/TermsOfService";
+import CancellationPolicy from "./pages/CancellationPolicy";
 import AuthCallback from "./pages/AuthCallback";
 import Unauthorized from "./pages/Unauthorized";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailed from "./pages/PaymentFailed";
 import BookingConfirmation from "./pages/BookingConfirmation";
 import Book from "./pages/Book";
+import Packages from "./pages/Packages";
+import AdminLeads from "./pages/AdminLeads";
 import CookieConsent from "./components/CookieConsent";
+import ContactFab from "./components/ContactFab";
 import "./styles.css";
 
 function App() {
@@ -56,10 +60,11 @@ function App() {
         <Route path="/tours/:id" element={<TourDetail />} />
         <Route path="/tours/:id/booking" element={<TourBooking />} />
         <Route path="/tours/:id/drivers" element={<DriverSelection />} />
-        <Route path="/tours/:id/transaction" element={<TourTransaction />} />
+        <Route path="/tours/:id/transaction" element={<LegacyTransactionRedirect />} />
         <Route path="/tours/:id/checkout" element={<TourCheckout />} />
         <Route path="/tours/:id/confirmation" element={<TourConfirmation />} />
         <Route path="/book" element={<Book />} />
+        <Route path="/packages" element={<Packages />} />
         <Route path="/booking-confirmation" element={<BookingConfirmation />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-failed" element={<PaymentFailed />} />
@@ -89,14 +94,23 @@ function App() {
         <Route path="/admin/invoices" element={<AdminRouteGuard><AdminInvoices /></AdminRouteGuard>} />
         <Route path="/admin/tracking" element={<AdminRouteGuard><AdminTracking /></AdminRouteGuard>} />
         <Route path="/admin/reviews" element={<AdminRouteGuard><AdminReviewModeration /></AdminRouteGuard>} />
+        <Route path="/admin/leads" element={<AdminRouteGuard><AdminLeads /></AdminRouteGuard>} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/cancellation" element={<CancellationPolicy />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
       </Routes>
       <CookieConsent />
+      <ContactFab />
     </BrowserRouter>
   );
+}
+
+function LegacyTransactionRedirect() {
+  const { id } = useParams();
+  return <Navigate to={`/tours/${id}/checkout`} replace />;
 }
 
 export default App;

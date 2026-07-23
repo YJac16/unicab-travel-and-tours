@@ -1,63 +1,53 @@
 # Deploy notes (Vercel-only)
 
-## Vercel (frontend + API)
+## Phase 0 checklist (go-live unblock)
 
-- Project: unicab-travel-and-tours
-- Domains: unicabtraveltours.com / www.unicabtraveltours.com
-- DNS (GoDaddy): A `@` → `76.76.21.21`, CNAME `www` → `cname.vercel-dns.com`
-- API runs on the same Vercel project via Express catch-all [`api/[[...path]].js`](api/[[...path]].js) (shared app in [`server/createApp.js`](server/createApp.js))
-- Do **not** set `VITE_API_URL` — the client uses same-origin `/api/...`
+Run `npm run phase0` (`node scripts/phase0-check.js`) after env is set — it fails if the dead `cswucsxaujhimhigiybx` host is still configured.
 
-### Required Production env
+1. Create a **new or restored** Supabase project (the old `cswucsxaujhimhigiybx` host is dead).
+2. In SQL Editor, run migrations **in order**: `000` → `018` under [`supabase/migrations/`](supabase/migrations/). Prefer migrations over legacy [`schema.sql`](supabase/schema.sql).
+3. Storage → create buckets **`avatars`** (public) and **`invoices`** (private), then run [`016_storage_buckets.sql`](supabase/migrations/016_storage_buckets.sql) policies.
+4. Set Vercel + local env (Production):
 
 | Name | Notes |
 |------|--------|
-| `VITE_SUPABASE_URL` | Live project root, e.g. `https://xxxx.supabase.co` |
+| `VITE_SUPABASE_URL` | `https://YOUR_REF.supabase.co` |
 | `VITE_SUPABASE_ANON_KEY` | Anon key |
-| `SUPABASE_URL` | Same as `VITE_SUPABASE_URL` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Service role (or existing `SERVICE_ROLE_SECRET` alias) |
+| `SUPABASE_URL` | Same project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Service role (alias: `SERVICE_ROLE_SECRET`) |
 | `YOCO_SECRET_KEY` or `YOCO_LIVE_SECRET_KEY` | Checkout |
+| `YOCO_WEBHOOK_SECRET` | `whsec_…` from Yoco webhook create (shown once) |
 | `BASE_URL` | `https://www.unicabtraveltours.com` |
-| `JWT_SECRET` | Legacy JWT auth fallback |
-| `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | Contact form |
+| `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | Contact + booking emails |
+| `VITE_GA_MEASUREMENT_ID` | Optional GA4 (loads only after cookie consent) |
+| `JWT_SECRET` | Legacy JWT fallback |
 
-After changing `VITE_*` vars, redeploy so Vite rebuilds the client bundle.
+5. **Do not** set `VITE_API_URL` (same-origin `/api`).
+6. Redeploy Vercel after any `VITE_*` change.
+7. `node scripts/ensure-hub-test-users.js` then `node scripts/seed-tours-from-data.js`
+8. Smoke: `/login`, one Yoco test payment, contact form, `/api/payments/status`
+9. Yoco dashboard webhook → `https://www.unicabtraveltours.com/api/payments/webhook` and store the `whsec_` secret as `YOCO_WEBHOOK_SECRET`
 
-Local API: `npm run build && node server.js` (or Vite proxy → Express on port 3000).
+## Vercel
+
+- Project: unicab-travel-and-tours
+- Domains: unicabtraveltours.com / www.unicabtraveltours.com
+- API: Express catch-all [`api/[[...path]].js`](api/[[...path]].js)
+
+Local: `npm run build && node server.js` (or Vite proxy → port 3000).
 
 ## Hub test users
 
-```bash
-node scripts/ensure-hub-test-users.js
-```
+Credentials live only in [`scripts/ensure-hub-test-users.js`](scripts/ensure-hub-test-users.js) (not duplicated here). Run the script against a live project to create/update Auth users + `profiles.role`.
 
-| Role | Email | Password | Hub |
-|------|--------|----------|-----|
-| Owner Admin | yaseenjacobs97@gmail.com | Yaseen97 | /admin/dashboard |
-| Admin | admin@unicabtravel.co.za | Admin123! | /admin/dashboard |
-| Driver | driver@unicabtravel.co.za | Driver123! | /driver/dashboard |
-| Client | member@unicabtravel.co.za | Member123! | /member/dashboard |
+Sign in: https://www.unicabtraveltours.com/login
 
-Sign in at https://www.unicabtraveltours.com/login
+### Manual fallback
 
-### Manual fallback (when script cannot reach Supabase)
+If DNS fails (`ENOTFOUND`): fix `SUPABASE_URL` / `VITE_SUPABASE_URL`, or create users in Supabase Auth Dashboard and upsert `profiles.role` (`admin` / `driver` / `customer`) plus a `drivers` row for the driver user.
 
-If `SUPABASE_URL` DNS fails (`ENOTFOUND`) or Auth API errors:
+## Payments & legal
 
-1. Fix Project URL in `.env` / Vercel (`VITE_SUPABASE_URL`, `SUPABASE_URL`) to a live project, then re-run the script.
-2. Or create users in **Supabase Dashboard → Authentication → Users → Add user** with the emails/passwords above (confirm email).
-3. In SQL Editor, upsert roles (replace UUIDs with each Auth user id):
-
-```sql
-insert into profiles (id, email, full_name, role)
-values
-  ('ADMIN_USER_UUID', 'admin@unicabtravel.co.za', 'Admin User', 'admin'),
-  ('DRIVER_USER_UUID', 'driver@unicabtravel.co.za', 'Driver User', 'driver'),
-  ('MEMBER_USER_UUID', 'member@unicabtravel.co.za', 'Member User', 'customer')
-on conflict (id) do update
-set email = excluded.email, full_name = excluded.full_name, role = excluded.role;
-
-insert into drivers (user_id, name, email, phone, active)
-select 'DRIVER_USER_UUID', 'Driver User', 'driver@unicabtravel.co.za', '+27810000000', true
-where not exists (select 1 from drivers where user_id = 'DRIVER_USER_UUID');
-```
+- Checkout is **YOCO hosted only** (`/tours/:id/checkout`). Legacy card route redirects to checkout.
+- Confirm requires a paid YOCO checkout id (webhook signature verified when `YOCO_WEBHOOK_SECRET` is set).
+- Legal: `/terms`, `/cancellation`, `/privacy-policy`, `/cookie-policy` (footer links via `SiteFooter`). Checkout requires Terms + Cancellation acknowledgement.

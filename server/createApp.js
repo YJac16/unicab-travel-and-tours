@@ -76,7 +76,14 @@ function createApp({ serveStatic = false } = {}) {
     next();
   });
 
-  app.use(bodyParser.json({ limit: '1mb' }));
+  app.use(
+    bodyParser.json({
+      limit: '1mb',
+      verify: (req, _res, buf) => {
+        req.rawBody = buf;
+      },
+    })
+  );
 
   app.use((error, req, res, next) => {
     if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
@@ -97,6 +104,8 @@ function createApp({ serveStatic = false } = {}) {
   const driverRouter = loadRouter('./routes/driver', 'Driver');
   const adminRouter = loadRouter('./routes/admin', 'Admin');
   const memberRouter = loadRouter('./routes/member', 'Member');
+
+  const packagesRouter = loadRouter('./routes/packages', 'Packages');
 
   app.get('/api', (req, res) => {
     const dbStatus =
@@ -120,6 +129,7 @@ function createApp({ serveStatic = false } = {}) {
           webhook: 'POST /api/payments/webhook',
         },
         contact: 'POST /api/contact',
+        packages: 'GET /api/packages',
         admin: { bookings: 'GET /api/admin/bookings' },
         driver: { bookings: 'GET /api/driver/bookings' },
         member: { bookings: 'GET /api/member/bookings' },
@@ -136,6 +146,7 @@ function createApp({ serveStatic = false } = {}) {
   app.use('/api/driver', driverRouter);
   app.use('/api/admin', adminRouter);
   app.use('/api/member', memberRouter);
+  app.use('/api/packages', packagesRouter);
 
   app.post('/api/contact', async (req, res) => {
     const payload = req.body || {};
@@ -158,6 +169,15 @@ function createApp({ serveStatic = false } = {}) {
     }
 
     try {
+      const { createLead } = require('../lib/leads');
+      await createLead({
+        source: payload.package_id ? 'package' : 'contact',
+        name,
+        email,
+        phone,
+        message,
+        package_id: payload.package_id || null,
+      });
       const { sendContactEmail } = require('../lib/sendContactEmail');
       await sendContactEmail({ name, email, phone, message });
       return res.json({

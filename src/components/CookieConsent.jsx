@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { siteConfig } from '../config';
 
 function CookieConsent() {
   const [showBanner, setShowBanner] = useState(false);
@@ -41,16 +42,21 @@ function CookieConsent() {
   }, []);
 
   const loadAnalytics = () => {
-    // Only load analytics if user has opted in
-    // Add your analytics script here (e.g., Google Analytics)
-    if (typeof window !== 'undefined' && window.gtag) {
-      // Analytics already loaded
-      return;
-    }
-    
-    // Example: Load Google Analytics
-    // You can add your actual analytics code here
-    console.log('Analytics cookies enabled');
+    const measurementId = siteConfig.analytics?.gaMeasurementId;
+    if (!measurementId || typeof window === 'undefined') return;
+    if (window.gtag) return;
+
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function gtag() {
+      window.dataLayer.push(arguments);
+    };
+    window.gtag('js', new Date());
+    window.gtag('config', measurementId, { anonymize_ip: true });
   };
 
   const handleAccept = () => {

@@ -854,6 +854,16 @@ router.patch('/bookings/:id/dispatch', async (req, res) => {
         .eq('id', vehicle_id);
     }
 
+    try {
+      const { sendOpsNotificationEmail } = require('../../lib/bookingEmail');
+      await sendOpsNotificationEmail({
+        subject: `Dispatched booking ${req.params.id}`,
+        text: `Booking ${req.params.id} dispatched. Driver: ${driver_id || 'n/a'}, Vehicle: ${vehicle_id || 'n/a'}, Trip: ${updates.trip_status || 'n/a'}`,
+      });
+    } catch (mailErr) {
+      console.warn('Dispatch notify skipped:', mailErr.message);
+    }
+
     res.json({ success: true, data });
   } catch (error) {
     console.error('Error dispatching booking:', error);
@@ -1079,6 +1089,98 @@ router.post('/subscriptions', async (req, res) => {
   } catch (error) {
     console.error('Error assigning subscription:', error);
     res.status(500).json({ success: false, error: 'Failed to assign subscription', message: error.message });
+  }
+});
+
+// GET /api/admin/leads
+router.get('/leads', async (req, res) => {
+  try {
+    if (!requireSupabase(res)) return;
+    const supabaseAdmin = getSupabaseAdmin();
+    const status = req.query.status;
+    let query = supabaseAdmin
+      .from('leads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (status) query = query.eq('status', status);
+    const { data, error } = await query;
+    if (error) throw error;
+    res.json({ success: true, data: data || [] });
+  } catch (error) {
+    console.error('Error fetching leads:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch leads', message: error.message });
+  }
+});
+
+// PATCH /api/admin/leads/:id
+router.patch('/leads/:id', async (req, res) => {
+  try {
+    if (!requireSupabase(res)) return;
+    const { status } = req.body || {};
+    if (!['new', 'contacted', 'qualified', 'won', 'lost'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status' });
+    }
+    const supabaseAdmin = getSupabaseAdmin();
+    const { data, error } = await supabaseAdmin
+      .from('leads')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', req.params.id)
+      .select('*')
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ success: false, error: 'Lead not found' });
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Error updating lead:', error);
+    res.status(500).json({ success: false, error: 'Failed to update lead', message: error.message });
+  }
+});
+
+// GET /api/admin/stats — simple booking KPIs
+router.get('/stats', async (_req, res) => {
+  try {
+    if (!requireSupabase(res)) return;
+    const supabaseAdmin = getSupabaseAdmin();
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+    const sinceIso = since.toISOString();
+
+    const [{ data: bookings }, { data: leads }, { count: newLeads }] = await Promise.all([
+      supabaseAdmin
+        .from('bookings')
+        .select('id, status, payment_status, total_price, created_at')
+        .gte('created_at', sinceIso),
+      supabaseAdmin.from('leads').select('id, status').limit(500),
+      supabaseAdmin
+        .from('leads')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'new'),
+    ]);
+
+    const rows = bookings || [];
+    const paid = rows.filter((b) => b.payment_status === 'paid');
+    const revenue = paid.reduce((sum, b) => sum + Number(b.total_price || 0), 0);
+    const byStatus = rows.reduce((acc, b) => {
+      acc[b.status] = (acc[b.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({
+      success: true,
+      data: {
+        windowDays: 30,
+        bookingsTotal: rows.length,
+        bookingsPaid: paid.length,
+        revenueZar: Math.round(revenue * 100) / 100,
+        byStatus,
+        leadsTotal: (leads || []).length,
+        leadsNew: newLeads || 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch stats', message: error.message });
   }
 });
 

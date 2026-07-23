@@ -42,7 +42,18 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 **Wrong:** `https://xxxx.supabase.co/rest/v1` (causes `/rest/v1/rest/v1/...` 404s)  
 **Right:** `https://xxxx.supabase.co`
 
-**Production (Vercel):** set the same values in Project → Settings → Environment Variables, then **redeploy**. Vite bakes `VITE_` vars at build time — changing them without a rebuild will leave the old URL in the live JS bundle.
+## Apply migrations (required for hubs)
+
+Run SQL files in `supabase/migrations/` **in numeric order** (`000` through `017`) in the Supabase SQL Editor on a live project.
+
+Do **not** rely on `schema.sql` alone — it may lag behind hub features (vehicles, subscriptions, invoices, marketing tour fields, storage policies).
+
+After migrations:
+1. Create Storage buckets `avatars` (public) and `invoices` (private)
+2. `node scripts/ensure-hub-test-users.js`
+3. `node scripts/seed-tours-from-data.js`
+
+See [DEPLOY.md](../DEPLOY.md) Phase 0 checklist. Run `npm run phase0` to validate env + Supabase reachability. Migrations: `000` → `018`.
 
 Server bookings/payments also need `SUPABASE_SERVICE_ROLE_KEY` (Settings → API → `service_role`). Without it, `/api/bookings` returns 501 "Supabase not configured".
 

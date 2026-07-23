@@ -13,7 +13,8 @@ function TourCheckout() {
     lastName: "",
     email: "",
     phone: "",
-    pickupAddress: ""
+    pickupAddress: "",
+    acceptLegal: false,
   });
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -60,6 +61,9 @@ function TourCheckout() {
     }
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
     if (!formData.pickupAddress.trim()) newErrors.pickupAddress = "Pickup address is required";
+    if (!formData.acceptLegal) {
+      newErrors.acceptLegal = "Please accept the Terms and Cancellation Policy to continue";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -276,6 +280,43 @@ function TourCheckout() {
                     {errors.pickupAddress && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.pickupAddress}</p>}
                   </div>
                 </div>
+
+                <label
+                  style={{
+                    display: "flex",
+                    gap: "0.65rem",
+                    alignItems: "flex-start",
+                    marginBottom: "1rem",
+                    fontSize: "0.9rem",
+                    color: "var(--text-soft)",
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={formData.acceptLegal}
+                    onChange={(e) =>
+                      setFormData({ ...formData, acceptLegal: e.target.checked })
+                    }
+                    style={{ marginTop: "0.2rem" }}
+                  />
+                  <span>
+                    I agree to the{" "}
+                    <Link to="/terms" target="_blank" rel="noopener noreferrer">
+                      Terms of Service
+                    </Link>{" "}
+                    and{" "}
+                    <Link to="/cancellation" target="_blank" rel="noopener noreferrer">
+                      Cancellation Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+                {errors.acceptLegal && (
+                  <p style={{ color: "#e74c3c", fontSize: "0.85rem", marginTop: "-0.5rem" }}>
+                    {errors.acceptLegal}
+                  </p>
+                )}
 
                 <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginBottom: "1rem" }}>
                   You will be redirected to YOCO Checkout to pay securely. Your booking is confirmed after payment succeeds.

@@ -199,6 +199,27 @@ export const getTour = async (id) => {
   const { tours } = await import('../data');
   const localTour = tours.find((t) => t.id === id);
 
+  try {
+    const backendResult = await apiCall(`/api/tours/${encodeURIComponent(id)}`);
+    if (backendResult.data && !backendResult.error) {
+      const remote = backendResult.data;
+      return {
+        data: localTour
+          ? {
+              ...localTour,
+              ...remote,
+              id: localTour.id,
+              image: remote.image || localTour.image,
+              pricing: remote.pricing || localTour.pricing,
+            }
+          : remote,
+        error: null,
+      };
+    }
+  } catch {
+    // fall through
+  }
+
   if (!isSupabaseConfigured()) {
     return { data: localTour || null, error: localTour ? null : { message: 'Tour not found' } };
   }
@@ -1596,6 +1617,50 @@ export const cancelMemberSubscription = async (id) =>
 export const getMemberInvoices = async () => memberApiCallAuth('/api/member/invoices');
 export const updateMemberProfile = async (payload) =>
   memberApiCallAuth('/api/member/profile', { method: 'PATCH', body: JSON.stringify(payload) });
+
+export const cancelBooking = async (id, payload = {}) =>
+  authApiCall(`/api/bookings/${id}/cancel`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+export const getPackages = async () => {
+  try {
+    const result = await apiCall('/api/packages');
+    return { data: result.data || [], error: result.error || null };
+  } catch (error) {
+    return { data: [], error: { message: error.message } };
+  }
+};
+
+export const submitLeadEnquiry = async (payload) => {
+  try {
+    const base = API_BASE_URL || '';
+    const response = await fetch(`${base}/api/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok) return { data: null, error: result };
+    return { data: result, error: null };
+  } catch (error) {
+    return { data: null, error: { message: error.message } };
+  }
+};
+
+export const getAdminLeads = async () => adminApiCall('/api/admin/leads');
+export const updateAdminLead = async (id, status) =>
+  adminApiCall(`/api/admin/leads/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+export const getAdminStats = async () => adminApiCall('/api/admin/stats');
+export const refundAdminBooking = async (bookingId) =>
+  adminApiCall('/api/payments/refund', {
+    method: 'POST',
+    body: JSON.stringify({ booking_id: bookingId }),
+  });
 
 export const getDriverBooking = async (id) => driverApiCall(`/api/driver/bookings/${id}`);
 export const updateDriverTripStatus = async (id, trip_status) =>

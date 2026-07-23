@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getMemberBooking } from '../lib/api';
+import { getMemberBooking, cancelBooking } from '../lib/api';
 import { supabase } from '../lib/supabase';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
@@ -14,17 +14,21 @@ export default function MemberBookingDetail() {
   const [booking, setBooking] = useState(null);
   const [location, setLocation] = useState(null);
   const [error, setError] = useState('');
+  const [cancelBusy, setCancelBusy] = useState(false);
+  const [cancelMsg, setCancelMsg] = useState('');
+
+  const reload = async () => {
+    const { data, error: err } = await getMemberBooking(id);
+    if (err) {
+      setError(err.message || 'Failed to load');
+      return;
+    }
+    setBooking(data);
+    setLocation(data?.location || null);
+  };
 
   useEffect(() => {
-    (async () => {
-      const { data, error: err } = await getMemberBooking(id);
-      if (err) {
-        setError(err.message || 'Failed to load');
-        return;
-      }
-      setBooking(data);
-      setLocation(data?.location || null);
-    })();
+    reload();
   }, [id]);
 
   useEffect(() => {
@@ -42,6 +46,31 @@ export default function MemberBookingDetail() {
     };
   }, [booking?.trip_status, id]);
 
+  const handleCancel = async () => {
+    if (!booking) return;
+    if (
+      !window.confirm(
+        'Cancel this booking? Refunds follow the cancellation policy (full ≥48h, 50% 24–48h, none under 24h).'
+      )
+    ) {
+      return;
+    }
+    setCancelBusy(true);
+    setCancelMsg('');
+    const { data, error: err } = await cancelBooking(booking.id, {
+      email: booking.customer_email,
+      reason: 'member_self_serve',
+    });
+    setCancelBusy(false);
+    if (err) {
+      setCancelMsg(err.message || err.error || 'Cancel failed');
+      return;
+    }
+    const note = data?.refund?.note || '';
+    setCancelMsg(note ? `Cancelled. Refund: ${note}` : 'Cancelled.');
+    reload();
+  };
+
   if (error) {
     return (
       <div className="container" style={{ padding: '2rem' }}>
@@ -55,6 +84,7 @@ export default function MemberBookingDetail() {
 
   const driver = booking.driver;
   const profile = booking.driver_profile;
+  const canCancel = ['reserved', 'pending', 'confirmed'].includes(booking.status);
 
   return (
     <div>
@@ -75,6 +105,7 @@ export default function MemberBookingDetail() {
         <p style={{ color: 'var(--text-soft)' }}>
           {booking.booking_date} {booking.booking_time || ''} · {booking.status}
           {booking.trip_status ? ` · ${booking.trip_status}` : ''}
+          {booking.time_slot ? ` · ${booking.time_slot}` : ''}
         </p>
 
         <section className="card" style={{ padding: '1.25rem', marginTop: '1rem' }}>
@@ -100,7 +131,23 @@ export default function MemberBookingDetail() {
         </section>
 
         {booking.pickup_address && (
-          <p style={{ marginTop: '1rem' }}><strong>Pickup:</strong> {booking.pickup_address}</p>
+          <p style={{ marginTop: '1rem' }}>
+            <strong>Pickup:</strong> {booking.pickup_address}
+          </p>
+        )}
+
+        {canCancel && (
+          <section style={{ marginTop: '1.25rem' }}>
+            <button type="button" className="btn btn-outline" disabled={cancelBusy} onClick={handleCancel}>
+              {cancelBusy ? 'Cancelling…' : 'Cancel booking'}
+            </button>
+            {cancelMsg && (
+              <p style={{ marginTop: '0.5rem', color: 'var(--accent-gold)' }}>{cancelMsg}</p>
+            )}
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-soft)' }}>
+              See our <Link to="/cancellation">cancellation policy</Link> for refund windows.
+            </p>
+          </section>
         )}
 
         {['en_route_pickup', 'on_tour'].includes(booking.trip_status) && (
