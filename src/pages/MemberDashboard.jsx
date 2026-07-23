@@ -84,7 +84,7 @@ export default function MemberDashboard() {
         )}
 
         <div style={{ margin: '1.5rem 0' }}>
-          <Link to="/tours" className="btn btn-primary">Book a tour</Link>
+          <Link to="/book" className="btn btn-primary">Book a tour</Link>
         </div>
 
         <h2>Upcoming</h2>

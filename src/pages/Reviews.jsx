@@ -69,7 +69,7 @@ function Reviews() {
                 <Link className="link-button" to="/reviews" onClick={() => setNavOpen(false)}>Reviews</Link>
               </li>
               <li className="cta-nav">
-                <Link className="btn btn-primary btn-compact" to="/tours" onClick={() => setNavOpen(false)}>
+                <Link className="btn btn-primary btn-compact" to="/book" onClick={() => setNavOpen(false)}>
                   Book Now
                 </Link>
               </li>

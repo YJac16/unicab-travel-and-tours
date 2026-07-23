@@ -12,12 +12,20 @@
 3. Env: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `YOCO_SECRET_KEY`, `NODE_ENV=production`
 4. Copy the public API URL into Vercel env `VITE_API_URL` (Production + Preview) and redeploy the frontend
 
-## Contact form (Resend)
+## Hub test users
 
-Set on **Vercel** (Production + Preview) for `/api/contact`:
+Run when Supabase is reachable:
 
-- `RESEND_API_KEY` — from https://resend.com
-- `CONTACT_TO_EMAIL=info@unicabtravel.co.za`
-- `CONTACT_FROM_EMAIL=UNICAB Travel & Tours <onboarding@resend.dev>` (or your verified domain)
+```bash
+node scripts/ensure-hub-test-users.js
+```
 
-Also set the same on the Express API host if contact is proxied there.
+Default credentials (created/updated by the script):
+
+| Role | Email | Password | Hub |
+|------|--------|----------|-----|
+| Admin | admin@unicabtravel.co.za | Admin123! | /admin/dashboard |
+| Driver | driver@unicabtravel.co.za | Driver123! | /driver/dashboard |
+| Client | member@unicabtravel.co.za | Member123! | /member/dashboard |
+
+Sign in at `/login`. If the script cannot reach Supabase, create the same users in the Supabase Auth dashboard and set `profiles.role` to `admin`, `driver`, or `customer` (and a `drivers` row for the driver).

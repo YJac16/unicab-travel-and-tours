@@ -197,7 +197,7 @@ function TourDetail() {
               <li className="cta-nav">
                 <Link 
                   className="btn btn-primary btn-compact" 
-                  to="/tours"
+                  to="/book"
                   onClick={() => setNavOpen(false)}
                 >
                   Book Now

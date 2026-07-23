@@ -96,7 +96,7 @@ function BookingConfirmation() {
               )}
 
               <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                <Link to="/tours" className="btn btn-primary" style={{ textDecoration: "none" }}>
+                <Link to="/book" className="btn btn-primary" style={{ textDecoration: "none" }}>
                   Book Now
                 </Link>
                 <Link to="/" className="btn btn-outline" style={{ textDecoration: "none" }}>

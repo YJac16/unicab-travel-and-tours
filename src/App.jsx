@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminRouteGuard } from "./components/AdminRouteGuard";
 import { DriverRouteGuard } from "./components/DriverRouteGuard";
@@ -43,6 +43,7 @@ import Unauthorized from "./pages/Unauthorized";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentFailed from "./pages/PaymentFailed";
 import BookingConfirmation from "./pages/BookingConfirmation";
+import Book from "./pages/Book";
 import CookieConsent from "./components/CookieConsent";
 import "./styles.css";
 
@@ -58,7 +59,7 @@ function App() {
         <Route path="/tours/:id/transaction" element={<TourTransaction />} />
         <Route path="/tours/:id/checkout" element={<TourCheckout />} />
         <Route path="/tours/:id/confirmation" element={<TourConfirmation />} />
-        <Route path="/book" element={<Navigate to="/tours" replace />} />
+        <Route path="/book" element={<Book />} />
         <Route path="/booking-confirmation" element={<BookingConfirmation />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-failed" element={<PaymentFailed />} />
