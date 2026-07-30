@@ -7,6 +7,7 @@ function PaymentSuccess() {
   const navigate = useNavigate();
   const bookingRef = searchParams.get("bookingRef");
   const [confirming, setConfirming] = useState(!!bookingRef);
+  const [confirmFailed, setConfirmFailed] = useState(false);
 
   useEffect(() => {
     const confirm = async () => {
@@ -16,12 +17,18 @@ function PaymentSuccess() {
       }
 
       try {
-        await confirmYocoPayment(bookingRef);
+        const result = await confirmYocoPayment(bookingRef);
+        if (result?.error) {
+          setConfirmFailed(true);
+        }
       } catch (error) {
         console.warn("Payment confirm fallback failed (webhook may still update):", error);
+        setConfirmFailed(true);
       } finally {
         setConfirming(false);
-        navigate(`/booking-confirmation?bookingRef=${encodeURIComponent(bookingRef)}`, { replace: true });
+        navigate(`/booking-confirmation?bookingRef=${encodeURIComponent(bookingRef)}`, {
+          replace: true,
+        });
       }
     };
 
@@ -40,22 +47,34 @@ function PaymentSuccess() {
       <main>
         <section className="section" style={{ paddingTop: "8rem", textAlign: "center" }}>
           <div className="container">
-            <h1>{confirming ? "Confirming your payment..." : "Payment Successful"}</h1>
+            <h1>
+              {confirming
+                ? "Confirming your payment..."
+                : confirmFailed
+                  ? "Payment received — confirming booking"
+                  : "Payment Successful"}
+            </h1>
             <p style={{ color: "var(--text-soft)" }}>
               {confirming
                 ? "Please wait while we finalize your booking."
-                : "Your YOCO payment was received."}
+                : confirmFailed
+                  ? "YOCO reported success. If confirmation takes a moment, your booking page will show reserved until payment status updates."
+                  : "Your YOCO payment was received."}
             </p>
             {bookingRef && (
               <p style={{ marginTop: "1rem" }}>
-                <Link className="btn btn-primary" to={`/booking-confirmation?bookingRef=${encodeURIComponent(bookingRef)}`}>
+                <Link
+                  className="btn btn-primary"
+                  to={`/booking-confirmation?bookingRef=${encodeURIComponent(bookingRef)}`}
+                >
                   View Confirmation
                 </Link>
               </p>
             )}
           </div>
         </section>
-      </main>    </div>
+      </main>
+    </div>
   );
 }
 

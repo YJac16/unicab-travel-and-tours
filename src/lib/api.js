@@ -354,7 +354,7 @@ export const createBooking = async (bookingData) => {
 
   // Transform bookingData to match backend API format
   const backendPayload = {
-    tour_id: bookingData.tour_id || bookingData.tourId,
+    tour_id: bookingData.tour_id || bookingData.tourId || bookingData.dbId,
     guide_id: bookingData.guide_id || bookingData.guideId || bookingData.driver_id || bookingData.driverId,
     driver_id: bookingData.driver_id || bookingData.driverId || bookingData.guide_id || bookingData.guideId,
     booking_date: bookingData.date || bookingData.booking_date,
@@ -371,6 +371,7 @@ export const createBooking = async (bookingData) => {
     pickup_address: bookingData.pickup_address || bookingData.pickupAddress || null,
     pickup_lat: bookingData.pickup_lat ?? bookingData.pickupLat ?? null,
     pickup_lng: bookingData.pickup_lng ?? bookingData.pickupLng ?? null,
+    package_id: bookingData.package_id || bookingData.packageId || null,
   };
 
   // Prefer Supabase session token when available

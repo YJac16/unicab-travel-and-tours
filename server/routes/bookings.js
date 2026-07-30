@@ -3,6 +3,29 @@ const express = require('express');
 const router = express.Router();
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../lib/supabaseAdmin');
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+/** Resolve public tour slug or UUID to the tours.id UUID used by bookings.tour_id */
+async function resolveTourUuid(supabaseAdmin, tourId) {
+  if (!tourId) return null;
+  const raw = String(tourId).trim();
+  if (UUID_RE.test(raw)) {
+    const { data } = await supabaseAdmin
+      .from('tours')
+      .select('id')
+      .eq('id', raw)
+      .maybeSingle();
+    if (data?.id) return data.id;
+  }
+  const { data: bySlug } = await supabaseAdmin
+    .from('tours')
+    .select('id')
+    .eq('slug', raw)
+    .maybeSingle();
+  return bySlug?.id || null;
+}
+
 const optionalAuth = async (req, res, next) => {
   const token = req.headers.authorization?.substring(7);
   if (!token) {
@@ -145,6 +168,16 @@ router.post('/', optionalAuth, async (req, res) => {
     // Enforce one paid/confirmed booking per driver per day when driver assigned
     const supabaseAdmin = getSupabaseAdmin();
 
+    // Public API exposes tour slugs as `id`; bookings.tour_id is a UUID FK
+    const resolvedTourId = await resolveTourUuid(supabaseAdmin, tour_id);
+    if (!resolvedTourId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid tour_id',
+        message: 'Tour not found. Use a valid tour id or slug.',
+      });
+    }
+
     if (finalDriverId) {
       const { data: existingBookings } = await supabaseAdmin
         .from('bookings')
@@ -202,7 +235,7 @@ router.post('/', optionalAuth, async (req, res) => {
       const { data: tourData } = await supabaseAdmin
         .from('tours')
         .select('duration_hours, duration')
-        .eq('id', tour_id)
+        .eq('id', resolvedTourId)
         .maybeSingle();
 
       if (tourData) {
@@ -241,7 +274,7 @@ router.post('/', optionalAuth, async (req, res) => {
     } = req.body || {};
 
     const insertPayload = {
-      tour_id,
+      tour_id: resolvedTourId,
       driver_id: finalDriverId,
       user_id: userId,
       booking_date,

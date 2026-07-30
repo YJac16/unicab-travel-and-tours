@@ -4,6 +4,7 @@ import { tours } from "../data";
 import { getTour, getTourReviews, getTourReviewStats } from "../lib/api";
 import TourReviewForm from "../components/TourReviewForm";
 import SafeImage from "../components/SafeImage";
+import { siteConfig } from "../config";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -354,12 +355,12 @@ function TourDetail() {
                 info@unicabtravel.co.za
               </a>
               <a
-                href="https://wa.me/+27822818105"
+                href={siteConfig.whatsapp.directLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: "var(--accent-gold)", textDecoration: "none", marginRight: "1rem" }}
               >
-                +27 82 281 8105
+                {siteConfig.whatsapp.displayNumber}
               </a>
               <a
                 href="https://www.unicab.co.za/"

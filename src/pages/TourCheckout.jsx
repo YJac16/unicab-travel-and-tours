@@ -19,8 +19,13 @@ function TourCheckout() {
   const [submitting, setSubmitting] = useState(false);
   const [memberTier, setMemberTier] = useState(null);
 
-  const { pax, date, time, tour, drivers, driver } = location.state || {};
-  const selectedDriver = drivers?.[0] || driver || null;
+  const { pax, date, time, tour, drivers, driver, packageId } = location.state || {};
+  const selectedDrivers = Array.isArray(drivers) && drivers.length
+    ? drivers
+    : driver
+      ? [driver]
+      : [];
+  const selectedDriver = selectedDrivers[0] || null;
 
   useEffect(() => {
     if (!pax || !date || !tour) {
@@ -87,8 +92,13 @@ function TourCheckout() {
         // guest checkout
       }
 
+      const secondDriver = selectedDrivers[1];
+      const secondDriverNote = secondDriver
+        ? `Second driver/guide: ${secondDriver.name || "Unnamed"} (${secondDriver.id || secondDriver.driver_id || "n/a"})`
+        : null;
+
       const bookingData = {
-        tour_id: tour.id,
+        tour_id: tour.dbId || tour.id,
         driver_id: selectedDriver?.id || selectedDriver?.driver_id || null,
         user_id: userId,
         customer_name: `${formData.firstName} ${formData.lastName}`.trim(),
@@ -101,6 +111,8 @@ function TourCheckout() {
         total_price: totalPrice,
         status: "reserved",
         pickup_address: formData.pickupAddress.trim(),
+        package_id: packageId || null,
+        special_requests: secondDriverNote,
       };
 
       const { data: booking, error } = await createBooking(bookingData);
@@ -193,6 +205,16 @@ function TourCheckout() {
                     <span style={{ color: "var(--text-soft)" }}>Guests</span>
                     <strong>{pax}</strong>
                   </div>
+                  {selectedDrivers.length > 0 && (
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
+                      <span style={{ color: "var(--text-soft)" }}>
+                        Driver{selectedDrivers.length > 1 ? "s" : ""}
+                      </span>
+                      <strong style={{ textAlign: "right" }}>
+                        {selectedDrivers.map((d) => d.name || "Driver").join(", ")}
+                      </strong>
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "space-between" }}>
                     <span style={{ color: "var(--text-soft)" }}>Price per person</span>
                     <strong>
@@ -228,7 +250,7 @@ function TourCheckout() {
                   marginBottom: "1.5rem"
                 }}>
                   <h3 style={{ marginTop: 0 }}>Your Details</h3>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <div className="checkout-name-grid">
                     <div>
                       <label>First name *</label>
                       <input

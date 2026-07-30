@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { tours as localTours, drivers as localDrivers } from "../data";
 import { getTour, getAvailableDrivers, calculateTourPrice, formatTourPrice } from "../lib/api";
 
@@ -10,6 +10,8 @@ const formatStars = (rating) => {
 
 function TourBooking() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const packageId = searchParams.get("package") || null;
   const navigate = useNavigate();
   const [pax, setPax] = useState(1);
   const [selectedDate, setSelectedDate] = useState("");
@@ -18,7 +20,6 @@ function TourBooking() {
   const [errors, setErrors] = useState({});
   const [showDriverSelection, setShowDriverSelection] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
-  const [driverBookings, setDriverBookings] = useState({});
   const [tour, setTour] = useState(null);
   const [availableDrivers, setAvailableDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,10 +74,6 @@ function TourBooking() {
     // Reset selected drivers when drivers change
     setSelectedDrivers([]);
   };
-
-  if (!tour) return null;
-
-  // availableDrivers is now loaded from API
 
   // Calculate tour end time and validate against cutoff
   const calculateEndTime = (startTime, durationHours) => {
@@ -282,6 +279,7 @@ function TourBooking() {
       tour: plainTour,
       drivers: plainDrivers,
       driver: plainDrivers[0] || null,
+      packageId: packageId || null,
     };
 
     navigate(`/tours/${id}/checkout`, {
@@ -290,9 +288,6 @@ function TourBooking() {
     });
   };
 
-  const pricePerPerson = calculateTourPrice(tour, pax);
-  const totalPrice = pricePerPerson * pax;
-
   if (loading || !tour) {
     return (
       <div style={{ padding: '4rem', textAlign: 'center' }}>
@@ -300,6 +295,9 @@ function TourBooking() {
       </div>
     );
   }
+
+  const pricePerPerson = calculateTourPrice(tour, pax);
+  const totalPrice = pricePerPerson * pax;
 
   return (
     <div>
@@ -850,6 +848,27 @@ function TourBooking() {
                             })}
                           </p>
                         </div>
+                        {selectedTime && (
+                        <div>
+                          <p style={{ 
+                            margin: "0 0 0.5rem", 
+                            fontSize: "0.85rem", 
+                            color: "var(--text-soft)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em"
+                          }}>
+                            Start Time
+                          </p>
+                          <p style={{ 
+                            margin: 0, 
+                            fontSize: "1.3rem", 
+                            fontWeight: "700",
+                            color: "var(--text-main)"
+                          }}>
+                            {selectedTime}
+                          </p>
+                        </div>
+                        )}
                         <div>
                           <p style={{ 
                             margin: "0 0 0.5rem", 

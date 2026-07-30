@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { membershipPlans } from "../data";
+import { siteConfig } from "../config";
 
 function MembershipComparison() {
   const navigate = useNavigate();
@@ -307,12 +308,12 @@ function MembershipComparison() {
                 info@unicabtravel.co.za
               </a>
               <a
-                href="https://wa.me/+27822818105"
+                href={siteConfig.whatsapp.directLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: "var(--accent-gold)", textDecoration: "none", marginRight: "1rem" }}
               >
-                +27 82 281 8105
+                {siteConfig.whatsapp.displayNumber}
               </a>
               <a
                 href="https://www.unicab.co.za/"

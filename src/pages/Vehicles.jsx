@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { vehicles } from "../data";
 import SafeImage from "../components/SafeImage";
+import { siteConfig } from "../config";
 
 function Vehicles() {
   
@@ -148,12 +149,12 @@ function Vehicles() {
                 info@unicabtravel.co.za
               </a>
               <a
-                href="https://wa.me/+27822818105"
+                href={siteConfig.whatsapp.directLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ color: "var(--accent-gold)", textDecoration: "none", marginRight: "1rem" }}
               >
-                +27 82 281 8105
+                {siteConfig.whatsapp.displayNumber}
               </a>
               <a
                 href="https://www.unicab.co.za/"

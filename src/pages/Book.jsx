@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getTours, formatTourPrice, calculateTourPrice } from "../lib/api";
 import ProfileDropdown from "../components/ProfileDropdown";
 import SafeImage from "../components/SafeImage";
@@ -14,7 +14,10 @@ const formatStars = (rating) => {
 /**
  * Booking entry: pick a tour (live /api/tours with local fallback), then booking form.
  */
-function Book() {  const [tours, setTours] = useState([]);
+function Book() {
+  const [searchParams] = useSearchParams();
+  const packageId = searchParams.get("package");
+  const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const { t } = useLocale();
 
@@ -123,7 +126,11 @@ function Book() {  const [tours, setTours] = useState([]);
                       </p>
                       <div className="card-footer" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                         <Link
-                          to={`/tours/${tour.id}/booking`}
+                          to={
+                            packageId
+                              ? `/tours/${tour.id}/booking?package=${encodeURIComponent(packageId)}`
+                              : `/tours/${tour.id}/booking`
+                          }
                           className="btn btn-primary btn-compact"
                           style={{ textDecoration: "none" }}
                         >
@@ -144,7 +151,8 @@ function Book() {  const [tours, setTours] = useState([]);
             )}
           </div>
         </section>
-      </main>    </div>
+      </main>
+    </div>
   );
 }
 
