@@ -45,32 +45,35 @@ function PaymentSuccess() {
         </div>
       </header>
       <main>
-        <section className="section" style={{ paddingTop: "8rem", textAlign: "center" }}>
+        <section className="section checkout-page">
           <div className="container">
-            <h1>
-              {confirming
-                ? "Confirming your payment..."
-                : confirmFailed
-                  ? "Payment received — confirming booking"
-                  : "Payment Successful"}
-            </h1>
-            <p style={{ color: "var(--text-soft)" }}>
-              {confirming
-                ? "Please wait while we finalize your booking."
-                : confirmFailed
-                  ? "YOCO reported success. If confirmation takes a moment, your booking page will show reserved until payment status updates."
-                  : "Your YOCO payment was received."}
-            </p>
-            {bookingRef && (
-              <p style={{ marginTop: "1rem" }}>
-                <Link
-                  className="btn btn-primary"
-                  to={`/booking-confirmation?bookingRef=${encodeURIComponent(bookingRef)}`}
-                >
-                  View Confirmation
-                </Link>
+            <div className="checkout-shell checkout-status">
+              <p className="checkout-eyebrow">Payment</p>
+              <h1 className="checkout-title">
+                {confirming
+                  ? "Confirming your payment"
+                  : confirmFailed
+                    ? "Payment received"
+                    : "Payment successful"}
+              </h1>
+              <p className="checkout-lead">
+                {confirming
+                  ? "Please wait while we finalize your booking."
+                  : confirmFailed
+                    ? "YOCO reported success. If confirmation takes a moment, your booking page will show reserved until payment status updates."
+                    : "Your YOCO payment was received."}
               </p>
-            )}
+              {bookingRef && (
+                <div className="checkout-actions" style={{ justifyContent: "center" }}>
+                  <Link
+                    className="btn btn-primary"
+                    to={`/booking-confirmation?bookingRef=${encodeURIComponent(bookingRef)}`}
+                  >
+                    View confirmation
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </main>

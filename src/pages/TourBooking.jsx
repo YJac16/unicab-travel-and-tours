@@ -325,7 +325,7 @@ function TourBooking() {
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem" }}>
+        <section className="section checkout-page">
           <div className="container">
             <div style={{ maxWidth: "800px", margin: "0 auto" }}>
               <Link 

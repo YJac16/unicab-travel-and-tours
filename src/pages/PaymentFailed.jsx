@@ -62,70 +62,33 @@ function PaymentFailed() {
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem", minHeight: "70vh" }}>
+        <section className="section checkout-page">
           <div className="container">
-            <div style={{ maxWidth: "700px", margin: "0 auto", textAlign: "center" }}>
-              <div
-                style={{
-                  fontSize: "4rem",
-                  color: "#e74c3c",
-                  marginBottom: "1.5rem",
-                }}
-              >
-                ✗
-              </div>
-
-              <h1 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>Payment Not Completed</h1>
-
-              <p style={{ fontSize: "1.1rem", color: "var(--text-soft)", marginBottom: "2rem" }}>
+            <div className="checkout-shell checkout-status">
+              <p className="checkout-eyebrow">Payment</p>
+              <h1 className="checkout-title">Payment not completed</h1>
+              <p className="checkout-lead">
                 Your payment was not completed. If nothing was charged, you can try again below.
               </p>
 
               {bookingRef && (
-                <div
-                  style={{
-                    background: "var(--bg-soft)",
-                    padding: "1.5rem",
-                    borderRadius: "12px",
-                    border: "1px solid var(--border-soft)",
-                    marginBottom: "2rem",
-                  }}
-                >
-                  <p style={{ margin: 0, color: "var(--text-soft)", fontSize: "0.9rem" }}>
-                    <strong>Booking Reference:</strong> {bookingRef}
-                  </p>
+                <div className="checkout-panel" style={{ textAlign: "left" }}>
+                  <div className="checkout-rows">
+                    <div className="checkout-row">
+                      <span>Booking reference</span>
+                      <strong>{bookingRef}</strong>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div
-                style={{
-                  background: "#fff3cd",
-                  border: "1px solid #ffc107",
-                  borderRadius: "8px",
-                  padding: "1.5rem",
-                  marginBottom: "2rem",
-                  textAlign: "left",
-                }}
-              >
-                <p style={{ margin: 0, color: "#856404", fontSize: "0.95rem" }}>
-                  <strong>Don&apos;t worry!</strong> Your booking reservation is still saved. You can
-                  try payment again or contact us directly to complete your booking.
-                </p>
+              <div className="checkout-alert" style={{ textAlign: "left" }}>
+                Your reservation is still saved. Retry payment, or contact us to complete the booking.
               </div>
 
-              {retryError && (
-                <p style={{ color: "#e74c3c", marginBottom: "1rem" }}>{retryError}</p>
-              )}
+              {retryError && <p className="checkout-field-error">{retryError}</p>}
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "1rem",
-                  justifyContent: "center",
-                  flexWrap: "wrap",
-                  marginBottom: "2rem",
-                }}
-              >
+              <div className="checkout-actions" style={{ justifyContent: "center" }}>
                 {bookingRef && (
                   <button
                     type="button"
@@ -133,46 +96,26 @@ function PaymentFailed() {
                     className="btn btn-primary"
                     disabled={retrying}
                   >
-                    {retrying ? "Starting payment..." : "Try Payment Again"}
+                    {retrying ? "Starting payment..." : "Try payment again"}
                   </button>
                 )}
-                <Link to="/tours" className="btn btn-outline" style={{ textDecoration: "none" }}>
-                  Browse Tours
+                <Link to="/tours" className="btn btn-outline">
+                  Browse tours
                 </Link>
-                <Link to="/" className="btn btn-outline" style={{ textDecoration: "none" }}>
-                  Return Home
+                <Link to="/" className="btn btn-outline">
+                  Return home
                 </Link>
               </div>
 
-              <div
-                style={{
-                  background: "#d1ecf1",
-                  border: "1px solid #0c5460",
-                  borderRadius: "8px",
-                  padding: "1.5rem",
-                  textAlign: "left",
-                }}
-              >
-                <p style={{ margin: 0, color: "#0c5460", fontSize: "0.95rem" }}>
-                  <strong>Need Help?</strong> Contact us via{" "}
-                  <a
-                    href={siteConfig.whatsapp.linkWithMessage}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ color: "#0c5460", fontWeight: 600 }}
-                  >
-                    WhatsApp
-                  </a>{" "}
-                  or{" "}
-                  <a
-                    href={`mailto:${siteConfig.email}`}
-                    style={{ color: "#0c5460", fontWeight: 600 }}
-                  >
-                    {siteConfig.email}
-                  </a>
-                  {bookingRef ? ` and mention booking ${bookingRef}.` : "."}
-                </p>
-              </div>
+              <p className="checkout-note" style={{ marginTop: "2rem" }}>
+                Need help?{" "}
+                <a href={siteConfig.whatsapp.linkWithMessage} target="_blank" rel="noopener noreferrer">
+                  WhatsApp
+                </a>{" "}
+                or{" "}
+                <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+                {bookingRef ? ` — mention booking ${bookingRef}.` : "."}
+              </p>
             </div>
           </div>
         </section>

@@ -81,70 +81,59 @@ function MembershipSuccess() {
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem", minHeight: "70vh" }}>
+        <section className="section checkout-page">
           <div className="container">
-            <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
-              <div style={{
-                fontSize: "4rem",
-                color: status === "error" ? "#b00020" : "var(--accent-teal)",
-                marginBottom: "1.5rem"
-              }}>
-                {status === "confirming" ? "…" : status === "error" ? "!" : "✓"}
-              </div>
-
-              <h1 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
+            <div className="checkout-shell checkout-status">
+              <p className="checkout-eyebrow">Membership</p>
+              <h1 className="checkout-title">
                 {status === "confirming"
-                  ? "Confirming membership…"
+                  ? "Confirming membership"
                   : status === "error"
                     ? "Almost there"
-                    : "Welcome to UNICAB!"}
+                    : "Welcome to UNICAB"}
               </h1>
-
-              <p style={{ fontSize: "1.1rem", color: "var(--text-soft)", marginBottom: "2rem" }}>
+              <p className="checkout-lead">
                 {status === "confirming"
-                  ? "Activating your plan after YOCO payment."
+                  ? "Activating your prepaid month after YOCO payment."
                   : status === "error"
-                    ? transaction?.error || "We could not auto-confirm yet. If you paid, your plan will activate shortly via webhook — or open Membership in your hub."
-                    : "Your membership has been successfully activated."}
+                    ? transaction?.error ||
+                      "We could not auto-confirm yet. If you paid, your plan will activate shortly via webhook — or open Membership in your hub."
+                    : "Your prepaid monthly membership is active. It does not auto-renew — pay again before the period ends to continue."}
               </p>
 
               {transaction && status !== "confirming" && (
-                <div style={{
-                  background: "var(--bg-soft)",
-                  padding: "2rem",
-                  borderRadius: "12px",
-                  border: "1px solid var(--border-soft)",
-                  marginBottom: "2rem",
-                  textAlign: "left"
-                }}>
-                  <h3 style={{ marginTop: 0, marginBottom: "1rem" }}>Membership Details</h3>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                    <span style={{ color: "var(--text-soft)" }}>Plan:</span>
-                    <strong>{transaction.planName}</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                    <span style={{ color: "var(--text-soft)" }}>Amount:</span>
-                    <strong>{transaction.amount}</strong>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-soft)" }}>Reference:</span>
-                    <strong style={{ fontSize: "0.9rem" }}>{transaction.id}</strong>
+                <div className="checkout-panel" style={{ textAlign: "left" }}>
+                  <h2>Membership details</h2>
+                  <div className="checkout-rows">
+                    <div className="checkout-row">
+                      <span>Plan</span>
+                      <strong>{transaction.planName}</strong>
+                    </div>
+                    <div className="checkout-row">
+                      <span>Amount</span>
+                      <strong>{transaction.amount}</strong>
+                    </div>
+                    <div className="checkout-row">
+                      <span>Reference</span>
+                      <strong>{transaction.id}</strong>
+                    </div>
                   </div>
                 </div>
               )}
 
-              <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-                <Link to="/member/subscriptions" className="btn btn-primary" style={{ textDecoration: "none" }}>
+              <div className="checkout-actions" style={{ justifyContent: "center" }}>
+                <Link to="/member/subscriptions" className="btn btn-primary">
                   Membership hub
                 </Link>
-                <Link to="/tours" className="btn btn-outline" style={{ textDecoration: "none" }}>
-                  Explore Tours
+                <Link to="/tours" className="btn btn-outline">
+                  Explore tours
                 </Link>
               </div>
             </div>
           </div>
         </section>
-      </main>    </div>
+      </main>
+    </div>
   );
 }
 

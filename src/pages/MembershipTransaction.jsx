@@ -14,7 +14,8 @@ function MembershipTransaction() {
   const { planId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();  const [submitting, setSubmitting] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const plan = membershipPlans.find((p) => p.id === planId);
@@ -75,69 +76,75 @@ function MembershipTransaction() {
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem" }}>
-          <div className="container" style={{ maxWidth: 560 }}>
-            <header className="section-header" style={{ marginBottom: "2rem" }}>
-              <p className="eyebrow">Checkout</p>
-              <h1 style={{ marginBottom: "0.5rem" }}>{plan.name}</h1>
-              <p style={{ color: "var(--text-soft)", fontSize: "1.25rem", margin: 0 }}>{plan.price}</p>
-            </header>
+        <section className="section checkout-page">
+          <div className="container">
+            <div className="checkout-shell">
+              <Link to="/membership/comparison" className="btn btn-outline checkout-back">
+                ← Compare plans
+              </Link>
 
-            {cancelled && (
-              <p style={{ color: "var(--accent-gold)", marginBottom: "1rem" }}>
-                Checkout was cancelled. You can try again when ready.
+              <p className="checkout-eyebrow">Membership checkout</p>
+              <h1 className="checkout-title">{plan.name}</h1>
+              <p className="checkout-price">{plan.price}</p>
+              <p className="checkout-lead">
+                Billed monthly as a prepaid month — not auto-renewing. Pay once with YOCO for the next calendar month of benefits.
               </p>
-            )}
 
-            <ul style={{ marginBottom: "1.5rem", paddingLeft: "1.25rem", color: "var(--text-soft)" }}>
-              {plan.benefits.map((b) => (
-                <li key={b} style={{ marginBottom: "0.4rem" }}>
-                  {b}
-                </li>
-              ))}
-            </ul>
+              {cancelled && (
+                <div className="checkout-alert">
+                  Checkout was cancelled. You can try again when ready.
+                </div>
+              )}
 
-            {authLoading ? (
-              <p>Checking sign-in…</p>
-            ) : !user ? (
-              <div>
-                <p style={{ color: "var(--text-soft)", marginBottom: "1rem" }}>
-                  Sign in to continue to secure YOCO checkout for this membership.
-                </p>
-                <Link
-                  className="btn btn-primary"
-                  to={`/login?redirect=${encodeURIComponent(`/membership/transaction/${plan.id}`)}`}
-                >
-                  Sign in to pay
-                </Link>
-              </div>
-            ) : (
-              <div>
-                <p style={{ color: "var(--text-soft)", marginBottom: "1rem", fontSize: "0.9rem" }}>
-                  Paying as <strong>{user.email}</strong>. You will be redirected to YOCO to complete payment.
-                </p>
-                {error && (
-                  <p style={{ color: "#b00020", marginBottom: "1rem" }} role="alert">
-                    {error}
-                  </p>
+              <div className="checkout-panel">
+                <h2>Included</h2>
+                <ul className="checkout-benefits">
+                  {plan.benefits.map((b) => (
+                    <li key={b}>{b}</li>
+                  ))}
+                </ul>
+
+                {authLoading ? (
+                  <p className="checkout-note">Checking sign-in…</p>
+                ) : !user ? (
+                  <div>
+                    <p className="checkout-note">
+                      Sign in to continue to secure YOCO checkout for this membership.
+                    </p>
+                    <Link
+                      className="btn btn-primary"
+                      to={`/login?redirect=${encodeURIComponent(`/membership/transaction/${plan.id}`)}`}
+                    >
+                      Sign in to pay
+                    </Link>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="checkout-note">
+                      Paying as <strong>{user.email}</strong>. You will be redirected to YOCO to complete payment.
+                    </p>
+                    {error && (
+                      <p className="checkout-field-error" role="alert">
+                        {error}
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handlePay}
+                      disabled={submitting}
+                      style={{ width: "100%", padding: "1rem" }}
+                    >
+                      {submitting ? "Starting checkout…" : `Pay ${plan.price} with YOCO`}
+                    </button>
+                  </div>
                 )}
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handlePay}
-                  disabled={submitting}
-                >
-                  {submitting ? "Starting checkout…" : `Pay ${plan.price} with YOCO`}
-                </button>
               </div>
-            )}
-
-            <p style={{ marginTop: "2rem" }}>
-              <Link to="/membership/comparison">← Compare plans</Link>
-            </p>
+            </div>
           </div>
         </section>
-      </main>    </div>
+      </main>
+    </div>
   );
 }
 

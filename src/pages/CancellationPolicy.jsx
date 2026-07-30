@@ -43,9 +43,10 @@ function CancellationPolicy() {
           </p>
           <h2>Memberships</h2>
           <p>
-            Monthly membership fees are billed in advance. You may cancel renewal at any time from your member hub;
-            the current paid period remains active until it ends. Refunds for unused membership days are not provided
-            unless required by law.
+            Membership is prepaid for one calendar month via YOCO and does not auto-renew. You may
+            end the plan early from your member hub; otherwise benefits last until the paid period
+            ends. To continue after that date, pay again for another month. Refunds for unused
+            membership days are not provided unless required by law.
           </p>
           <h2>How to cancel</h2>
           <p>

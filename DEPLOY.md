@@ -26,7 +26,11 @@ Run `npm run phase0` (`node scripts/phase0-check.js`) after env is set — it fa
 6. Redeploy Vercel after any `VITE_*` change.
 7. `node scripts/ensure-hub-test-users.js` then `node scripts/seed-tours-from-data.js`
 8. Smoke: `/login`, one Yoco test payment, contact form, `/api/payments/status`
-9. Yoco dashboard webhook → `https://www.unicabtraveltours.com/api/payments/webhook` and store the `whsec_` secret as `YOCO_WEBHOOK_SECRET`
+9. Register the Yoco webhook (Developer Hub does **not** auto-create it for a new live app):
+   - Put a real `sk_live_…` in `YOCO_SECRET_KEY` / `YOCO_LIVE_SECRET_KEY` on Vercel (empty placeholders will not work).
+   - Run `node scripts/register-yoco-webhook.js` — it prints `YOCO_WEBHOOK_SECRET=whsec_…` **once**.
+   - Save that value to Vercel as `YOCO_WEBHOOK_SECRET` and redeploy.
+   - Notification URL: `https://www.unicabtraveltours.com/api/payments/webhook`
 
 ## Vercel
 

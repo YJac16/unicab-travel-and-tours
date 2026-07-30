@@ -37,7 +37,12 @@ function TourCheckout() {
     (async () => {
       try {
         const { data } = await getMemberSubscriptions();
-        const active = (data || []).find((s) => s.status === "active");
+        const now = Date.now();
+        const active = (data || []).find(
+          (s) =>
+            s.status === "active" &&
+            (!s.current_period_end || new Date(s.current_period_end).getTime() > now)
+        );
         setMemberTier(active?.tier || null);
       } catch {
         setMemberTier(null);
@@ -171,70 +176,56 @@ function TourCheckout() {
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem" }}>
+        <section className="section checkout-page">
           <div className="container">
-            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-              <Link to={`/tours/${id}/booking`} className="btn btn-outline" style={{ marginBottom: "2rem", textDecoration: "none" }}>
+            <div className="checkout-shell">
+              <Link to={`/tours/${id}/booking`} className="btn btn-outline checkout-back">
                 ← Back
               </Link>
 
-              <div style={{
-                background: "var(--bg-soft)",
-                padding: "2rem",
-                borderRadius: "12px",
-                marginBottom: "2rem",
-                border: "1px solid var(--border-soft)"
-              }}>
-                <h2 style={{ marginTop: 0 }}>Review Booking</h2>
-                <div style={{ display: "grid", gap: "0.75rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-soft)" }}>Tour</span>
+              <p className="checkout-eyebrow">Checkout</p>
+              <h1 className="checkout-title">Review &amp; pay</h1>
+              <p className="checkout-lead">Confirm your journey details, then continue to secure YOCO payment.</p>
+
+              <div className="checkout-panel">
+                <h2>Review booking</h2>
+                <div className="checkout-rows">
+                  <div className="checkout-row">
+                    <span>Tour</span>
                     <strong>{tour.name}</strong>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-soft)" }}>Date</span>
+                  <div className="checkout-row">
+                    <span>Date</span>
                     <strong>{new Date(date).toLocaleDateString("en-ZA", { year: "numeric", month: "long", day: "numeric" })}</strong>
                   </div>
                   {time && (
-                    <div style={{ display: "flex", justifyContent: "space-between" }}>
-                      <span style={{ color: "var(--text-soft)" }}>Start time</span>
+                    <div className="checkout-row">
+                      <span>Start time</span>
                       <strong>{time}</strong>
                     </div>
                   )}
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-soft)" }}>Guests</span>
+                  <div className="checkout-row">
+                    <span>Guests</span>
                     <strong>{pax}</strong>
                   </div>
                   {selectedDrivers.length > 0 && (
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem" }}>
-                      <span style={{ color: "var(--text-soft)" }}>
-                        Driver{selectedDrivers.length > 1 ? "s" : ""}
-                      </span>
-                      <strong style={{ textAlign: "right" }}>
-                        {selectedDrivers.map((d) => d.name || "Driver").join(", ")}
-                      </strong>
+                    <div className="checkout-row">
+                      <span>Driver{selectedDrivers.length > 1 ? "s" : ""}</span>
+                      <strong>{selectedDrivers.map((d) => d.name || "Driver").join(", ")}</strong>
                     </div>
                   )}
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "var(--text-soft)" }}>Price per person</span>
+                  <div className="checkout-row">
+                    <span>Price per person</span>
                     <strong>
                       {formatTourPrice(pricePerPerson)}
                       {discountLabel && basePerPerson !== pricePerPerson && (
-                        <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 400, color: "var(--text-soft)" }}>
+                        <span style={{ display: "block", fontSize: "0.75rem", fontWeight: 400, color: "var(--text-muted)" }}>
                           {discountLabel} (was {formatTourPrice(basePerPerson)})
                         </span>
                       )}
                     </strong>
                   </div>
-                  <div style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    paddingTop: "0.75rem",
-                    borderTop: "2px solid var(--border-soft)",
-                    color: "var(--accent-gold)",
-                    fontSize: "1.2rem",
-                    fontWeight: 700
-                  }}>
+                  <div className="checkout-row checkout-row-total">
                     <span>Total</span>
                     <span>{formatTourPrice(totalPrice)}</span>
                   </div>
@@ -242,84 +233,67 @@ function TourCheckout() {
               </div>
 
               <form onSubmit={handlePayWithYoco}>
-                <div style={{
-                  background: "white",
-                  padding: "2rem",
-                  borderRadius: "12px",
-                  border: "1px solid var(--border-soft)",
-                  marginBottom: "1.5rem"
-                }}>
-                  <h3 style={{ marginTop: 0 }}>Your Details</h3>
+                <div className="checkout-panel">
+                  <h3>Your details</h3>
                   <div className="checkout-name-grid">
-                    <div>
-                      <label>First name *</label>
+                    <div className="checkout-field">
+                      <label htmlFor="checkout-first-name">First name *</label>
                       <input
+                        id="checkout-first-name"
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        style={{ width: "100%", padding: "0.75rem", marginTop: "0.35rem", borderRadius: "8px", border: "1px solid var(--border-soft)" }}
                       />
-                      {errors.firstName && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.firstName}</p>}
+                      {errors.firstName && <p className="checkout-field-error">{errors.firstName}</p>}
                     </div>
-                    <div>
-                      <label>Last name *</label>
+                    <div className="checkout-field">
+                      <label htmlFor="checkout-last-name">Last name *</label>
                       <input
+                        id="checkout-last-name"
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        style={{ width: "100%", padding: "0.75rem", marginTop: "0.35rem", borderRadius: "8px", border: "1px solid var(--border-soft)" }}
                       />
-                      {errors.lastName && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.lastName}</p>}
+                      {errors.lastName && <p className="checkout-field-error">{errors.lastName}</p>}
                     </div>
                   </div>
-                  <div style={{ marginTop: "1rem" }}>
-                    <label>Email *</label>
+                  <div className="checkout-field">
+                    <label htmlFor="checkout-email">Email *</label>
                     <input
+                      id="checkout-email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      style={{ width: "100%", padding: "0.75rem", marginTop: "0.35rem", borderRadius: "8px", border: "1px solid var(--border-soft)" }}
                     />
-                    {errors.email && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.email}</p>}
+                    {errors.email && <p className="checkout-field-error">{errors.email}</p>}
                   </div>
-                  <div style={{ marginTop: "1rem" }}>
-                    <label>Phone *</label>
+                  <div className="checkout-field">
+                    <label htmlFor="checkout-phone">Phone *</label>
                     <input
+                      id="checkout-phone"
                       type="tel"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      style={{ width: "100%", padding: "0.75rem", marginTop: "0.35rem", borderRadius: "8px", border: "1px solid var(--border-soft)" }}
                     />
-                    {errors.phone && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.phone}</p>}
+                    {errors.phone && <p className="checkout-field-error">{errors.phone}</p>}
                   </div>
-                  <div style={{ marginTop: "1rem" }}>
-                    <label>Pickup address *</label>
+                  <div className="checkout-field">
+                    <label htmlFor="checkout-pickup">Pickup address *</label>
                     <input
+                      id="checkout-pickup"
                       value={formData.pickupAddress}
                       onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
                       placeholder="Hotel / address for pickup"
-                      style={{ width: "100%", padding: "0.75rem", marginTop: "0.35rem", borderRadius: "8px", border: "1px solid var(--border-soft)" }}
                     />
-                    {errors.pickupAddress && <p style={{ color: "#e74c3c", fontSize: "0.85rem" }}>{errors.pickupAddress}</p>}
+                    {errors.pickupAddress && <p className="checkout-field-error">{errors.pickupAddress}</p>}
                   </div>
                 </div>
 
-                <label
-                  style={{
-                    display: "flex",
-                    gap: "0.65rem",
-                    alignItems: "flex-start",
-                    marginBottom: "1rem",
-                    fontSize: "0.9rem",
-                    color: "var(--text-soft)",
-                    cursor: "pointer",
-                  }}
-                >
+                <label className="checkout-legal">
                   <input
                     type="checkbox"
                     checked={formData.acceptLegal}
                     onChange={(e) =>
                       setFormData({ ...formData, acceptLegal: e.target.checked })
                     }
-                    style={{ marginTop: "0.2rem" }}
                   />
                   <span>
                     I agree to the{" "}
@@ -334,12 +308,10 @@ function TourCheckout() {
                   </span>
                 </label>
                 {errors.acceptLegal && (
-                  <p style={{ color: "#e74c3c", fontSize: "0.85rem", marginTop: "-0.5rem" }}>
-                    {errors.acceptLegal}
-                  </p>
+                  <p className="checkout-field-error">{errors.acceptLegal}</p>
                 )}
 
-                <p style={{ color: "var(--text-soft)", fontSize: "0.9rem", marginBottom: "1rem" }}>
+                <p className="checkout-note">
                   You will be redirected to YOCO Checkout to pay securely. Your booking is confirmed after payment succeeds.
                 </p>
 

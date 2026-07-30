@@ -111,7 +111,7 @@ function DriverSelection() {
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "clamp(6rem, 12vw, 8rem)", paddingBottom: "clamp(2rem, 6vw, 4rem)" }}>
+        <section className="section checkout-page">
           <div className="container">
             <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 clamp(0.5rem, 2vw, 1rem)" }}>
               <Link 

@@ -39,7 +39,27 @@ const getYocoPublicKey = () =>
 
 async function activateSubscription({ userId, tier, checkoutId, paymentRef }) {
   const supabaseAdmin = getSupabaseAdmin();
-  const periodEnd = new Date();
+  const now = new Date();
+
+  const { data: existingActive } = await supabaseAdmin
+    .from('subscriptions')
+    .select('id, current_period_end, tier')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('current_period_end', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let periodStart = now;
+  if (
+    existingActive?.current_period_end &&
+    existingActive.tier === tier &&
+    new Date(existingActive.current_period_end).getTime() > now.getTime()
+  ) {
+    periodStart = new Date(existingActive.current_period_end);
+  }
+
+  const periodEnd = new Date(periodStart);
   periodEnd.setMonth(periodEnd.getMonth() + 1);
 
   await supabaseAdmin
@@ -299,8 +319,10 @@ router.post('/webhook', async (req, res) => {
       return res.status(401).json({ success: false, error: verified.error || 'Invalid signature' });
     }
 
+    const webhookId = req.headers['webhook-id'] || req.headers['Webhook-Id'] || null;
     const payload = req.body || {};
-    const eventType = payload.type || payload.event || payload.eventType;
+    const eventType =
+      payload.event_type || payload.type || payload.event || payload.eventType || null;
     const data = payload.payload || payload.data || payload;
     const metadata = data?.metadata || payload?.metadata || {};
 
@@ -309,26 +331,58 @@ router.post('/webhook', async (req, res) => {
     const tier = metadata.tier;
     const userId = metadata.user_id;
     const paymentRef =
-      data?.id || data?.checkoutId || data?.paymentId || payload?.id || null;
+      data?.id ||
+      data?.checkoutId ||
+      data?.paymentId ||
+      payload?.payment_id ||
+      payload?.order_id ||
+      payload?.id ||
+      null;
 
-    console.log('YOCO webhook received:', { eventType, kind, bookingId, tier, userId, paymentRef });
+    console.log('YOCO webhook received:', {
+      webhookId,
+      eventType,
+      kind,
+      bookingId,
+      tier,
+      userId,
+      paymentRef,
+    });
 
+    const typeStr = String(eventType || '');
     const isPaid =
-      /payment\.succeeded|checkout\.succeeded|payment_succeeded|succeeded/i.test(
-        String(eventType || '')
+      /payment\.created|payment\.succeeded|checkout\.succeeded|payment_succeeded|succeeded/i.test(
+        typeStr
       ) ||
       data?.status === 'succeeded' ||
       data?.status === 'successful';
 
     const isFailed =
-      /payment\.failed|checkout\.failed|failed/i.test(String(eventType || '')) ||
-      data?.status === 'failed';
+      /payment\.failed|checkout\.failed|failed/i.test(typeStr) || data?.status === 'failed';
+
+    const isRefunded = /payment\.refunded|refunded/i.test(typeStr);
 
     if (!isSupabaseConfigured()) {
       return res.json({ success: true, received: true });
     }
 
     const supabaseAdmin = getSupabaseAdmin();
+
+    if (webhookId) {
+      const { data: seen } = await supabaseAdmin
+        .from('yoco_webhook_events')
+        .select('webhook_id')
+        .eq('webhook_id', webhookId)
+        .maybeSingle();
+      if (seen) {
+        return res.json({ success: true, received: true, duplicate: true });
+      }
+      await supabaseAdmin.from('yoco_webhook_events').upsert({
+        webhook_id: webhookId,
+        event_type: typeStr || null,
+        processed_at: new Date().toISOString(),
+      });
+    }
 
     if (kind === 'subscription' && (userId || paymentRef)) {
       if (isPaid && userId && tier) {
@@ -342,20 +396,20 @@ router.post('/webhook', async (req, res) => {
         } catch (err) {
           console.error('Failed to activate subscription from webhook:', err);
           if (paymentRef) {
+            const periodEnd = new Date();
+            periodEnd.setMonth(periodEnd.getMonth() + 1);
             await supabaseAdmin
               .from('subscriptions')
               .update({
                 status: 'active',
                 payment_reference: paymentRef,
-                current_period_end: new Date(
-                  Date.now() + 30 * 24 * 60 * 60 * 1000
-                ).toISOString(),
+                current_period_end: periodEnd.toISOString(),
                 updated_at: new Date().toISOString(),
               })
               .eq('yoco_checkout_id', paymentRef);
           }
         }
-      } else if (isFailed && paymentRef) {
+      } else if ((isFailed || isRefunded) && paymentRef) {
         await supabaseAdmin
           .from('subscriptions')
           .update({ status: 'cancelled', updated_at: new Date().toISOString() })
@@ -374,6 +428,8 @@ router.post('/webhook', async (req, res) => {
         updates.paid_at = new Date().toISOString();
       } else if (isFailed) {
         updates.payment_status = 'failed';
+      } else if (isRefunded) {
+        updates.payment_status = 'refunded';
       }
 
       let query = supabaseAdmin.from('bookings').update(updates);

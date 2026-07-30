@@ -130,6 +130,14 @@ router.get('/subscriptions', async (req, res) => {
     const supabase = getSupabaseAdmin();
     const userId = req.user.id || req.user.userId;
 
+    // Expire-on-read: prepaid month ended → past_due
+    await supabase
+      .from('subscriptions')
+      .update({ status: 'past_due', updated_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .lt('current_period_end', new Date().toISOString());
+
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')

@@ -44,12 +44,12 @@ function BookingConfirmation() {
     : !isPaid && ["unpaid", "pending", "failed", ""].includes(paymentStatus);
 
   const title = loading
-    ? "Loading your booking..."
+    ? "Loading your booking"
     : isPaid
-      ? "Booking Confirmed"
+      ? "Booking confirmed"
       : booking
-        ? "Booking Reserved"
-        : "Booking Status";
+        ? "Booking reserved"
+        : "Booking status";
 
   const subtitle = loading
     ? "Please wait while we load your details."
@@ -70,97 +70,90 @@ function BookingConfirmation() {
       </header>
 
       <main>
-        <section className="section" style={{ paddingTop: "8rem", paddingBottom: "4rem" }}>
+        <section className="section checkout-page">
           <div className="container">
-            <div style={{ maxWidth: "720px", margin: "0 auto", textAlign: "center" }}>
-              <div
-                style={{
-                  fontSize: "3.5rem",
-                  color: isPaid ? "var(--accent-teal)" : "var(--accent-gold)",
-                  marginBottom: "1rem",
-                }}
-              >
-                {isPaid ? "✓" : "…"}
-              </div>
-              <h1 style={{ marginBottom: "0.75rem" }}>{title}</h1>
-              <p style={{ color: "var(--text-soft)", marginBottom: "2rem" }}>{subtitle}</p>
+            <div className="checkout-shell checkout-status">
+              <p className="checkout-eyebrow">{isPaid ? "Confirmed" : "Reservation"}</p>
+              <h1 className="checkout-title">{title}</h1>
+              <p className="checkout-lead">{subtitle}</p>
 
-              {loading && <p>Loading booking details...</p>}
-              {error && <p style={{ color: "#e74c3c" }}>{error}</p>}
+              {loading && <p className="checkout-note">Loading booking details…</p>}
+              {error && <p className="checkout-field-error">{error}</p>}
 
               {booking && (
-                <div
-                  style={{
-                    textAlign: "left",
-                    background: "var(--bg-soft)",
-                    border: "1px solid var(--border-soft)",
-                    borderRadius: "12px",
-                    padding: "1.5rem",
-                    marginBottom: "2rem",
-                  }}
-                >
-                  <p>
-                    <strong>Reference:</strong> {booking.id}
-                  </p>
-                  <p>
-                    <strong>Status:</strong> {booking.status}
-                  </p>
-                  <p>
-                    <strong>Payment:</strong> {booking.payment_status || "unknown"}
-                  </p>
-                  {booking.tour?.name && (
-                    <p>
-                      <strong>Tour:</strong> {booking.tour.name}
-                    </p>
-                  )}
-                  {booking.booking_date && (
-                    <p>
-                      <strong>Date:</strong>{" "}
-                      {new Date(booking.booking_date).toLocaleDateString("en-ZA", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  )}
-                  {booking.group_size && (
-                    <p>
-                      <strong>Guests:</strong> {booking.group_size}
-                    </p>
-                  )}
-                  {booking.customer_name && (
-                    <p>
-                      <strong>Guest:</strong> {booking.customer_name}
-                    </p>
-                  )}
-                  {booking.total_price != null && (
-                    <p>
-                      <strong>{isPaid ? "Total paid" : "Total due"}:</strong>{" "}
-                      {formatTourPrice(booking.total_price)}
-                    </p>
-                  )}
-                  {booking.payment_reference && (
-                    <p>
-                      <strong>Payment ref:</strong> {booking.payment_reference}
-                    </p>
-                  )}
+                <div className="checkout-panel" style={{ textAlign: "left" }}>
+                  <div className="checkout-rows">
+                    <div className="checkout-row">
+                      <span>Reference</span>
+                      <strong>{booking.id}</strong>
+                    </div>
+                    <div className="checkout-row">
+                      <span>Status</span>
+                      <strong>{booking.status}</strong>
+                    </div>
+                    <div className="checkout-row">
+                      <span>Payment</span>
+                      <strong>{booking.payment_status || "unknown"}</strong>
+                    </div>
+                    {booking.tour?.name && (
+                      <div className="checkout-row">
+                        <span>Tour</span>
+                        <strong>{booking.tour.name}</strong>
+                      </div>
+                    )}
+                    {booking.booking_date && (
+                      <div className="checkout-row">
+                        <span>Date</span>
+                        <strong>
+                          {new Date(booking.booking_date).toLocaleDateString("en-ZA", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}
+                        </strong>
+                      </div>
+                    )}
+                    {booking.group_size && (
+                      <div className="checkout-row">
+                        <span>Guests</span>
+                        <strong>{booking.group_size}</strong>
+                      </div>
+                    )}
+                    {booking.customer_name && (
+                      <div className="checkout-row">
+                        <span>Guest</span>
+                        <strong>{booking.customer_name}</strong>
+                      </div>
+                    )}
+                    {booking.total_price != null && (
+                      <div className="checkout-row checkout-row-total">
+                        <span>{isPaid ? "Total paid" : "Total due"}</span>
+                        <span>{formatTourPrice(booking.total_price)}</span>
+                      </div>
+                    )}
+                    {booking.payment_reference && (
+                      <div className="checkout-row">
+                        <span>Payment ref</span>
+                        <strong>{booking.payment_reference}</strong>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
-              <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
+              <div className="checkout-actions" style={{ justifyContent: "center" }}>
                 {isPending && bookingRef && (
                   <Link
                     to={`/payment-failed?bookingRef=${encodeURIComponent(bookingRef)}`}
                     className="btn btn-primary"
-                    style={{ textDecoration: "none" }}
                   >
-                    Complete Payment
+                    Complete payment
                   </Link>
                 )}
-                <Link to="/book" className="btn btn-primary" style={{ textDecoration: "none" }}>
-                  Book Now
+                <Link to="/book" className="btn btn-primary">
+                  Book now
                 </Link>
-                <Link to="/" className="btn btn-outline" style={{ textDecoration: "none" }}>
+                <Link to="/" className="btn btn-outline">
                   Home
                 </Link>
               </div>
