@@ -19,12 +19,18 @@ const MEMBERSHIP_AMOUNTS_CENTS = {
 };
 
 const getBaseUrl = (req) => {
-  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/+$/, '');
-  if (process.env.FRONTEND_URL) return process.env.FRONTEND_URL.replace(/\/+$/, '');
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`.replace(/\/+$/, '');
-  const host = req?.headers?.['x-forwarded-host'] || req?.headers?.host;
-  const proto = req?.headers?.['x-forwarded-proto'] || 'https';
-  if (host) return `${proto}://${host}`.replace(/\/+$/, '');
+  const clean = (value) =>
+    String(value || '')
+      .replace(/[\r\n\t]+/g, '')
+      .trim()
+      .replace(/\/+$/, '');
+
+  if (process.env.BASE_URL) return clean(process.env.BASE_URL);
+  if (process.env.FRONTEND_URL) return clean(process.env.FRONTEND_URL);
+  if (process.env.VERCEL_URL) return clean(`https://${process.env.VERCEL_URL}`);
+  const host = clean(req?.headers?.['x-forwarded-host'] || req?.headers?.host);
+  const proto = clean(req?.headers?.['x-forwarded-proto'] || 'https') || 'https';
+  if (host) return `${proto}://${host}`;
   return 'https://www.unicabtraveltours.com';
 };
 
