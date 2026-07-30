@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { tours as localTours, drivers as localDrivers } from "../data";
 import { getTour, getAvailableDrivers, calculateTourPrice, formatTourPrice } from "../lib/api";
-import BackToTop from "../components/BackToTop";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -12,7 +11,6 @@ const formatStars = (rating) => {
 function TourBooking() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [navOpen, setNavOpen] = useState(false);
   const [pax, setPax] = useState(1);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
@@ -311,25 +309,15 @@ function TourBooking() {
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
 
-          <button
-            className="nav-toggle"
-            aria-label="Toggle navigation"
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen((o) => !o)}
-          >
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-          </button>
-
-          <nav className={`main-nav ${navOpen ? "open" : ""}`} aria-label="Primary">
+          <nav className="main-nav" aria-label="Primary">
             <ul>
               <li>
-                <Link className="link-button" to="/" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/">
                   Home
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/tours" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/tours">
                   Tours
                 </Link>
               </li>
@@ -954,8 +942,6 @@ function TourBooking() {
           </div>
         </section>
       </main>
-
-      <BackToTop />
     </div>
   );
 }

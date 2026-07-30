@@ -3,7 +3,6 @@ import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom"
 import { membershipPlans } from "../data";
 import { createYocoPayment } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
-import BackToTop from "../components/BackToTop";
 
 const TIER_CENTS = {
   explorer: 29900,
@@ -15,9 +14,7 @@ function MembershipTransaction() {
   const { planId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
-  const [navOpen, setNavOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const { user, loading: authLoading } = useAuth();  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const plan = membershipPlans.find((p) => p.id === planId);
@@ -60,24 +57,15 @@ function MembershipTransaction() {
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
-          <button
-            className="nav-toggle"
-            aria-label="Toggle navigation"
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen((o) => !o)}
-          >
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-          </button>
-          <nav className={`main-nav ${navOpen ? "open" : ""}`} aria-label="Primary">
+          <nav className="main-nav" aria-label="Primary">
             <ul>
               <li>
-                <Link className="link-button" to="/membership" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/membership">
                   Membership
                 </Link>
               </li>
               <li className="cta-nav">
-                <Link className="btn btn-primary btn-compact" to="/book" onClick={() => setNavOpen(false)}>
+                <Link className="btn btn-primary btn-compact" to="/book">
                   Book Now
                 </Link>
               </li>
@@ -149,9 +137,7 @@ function MembershipTransaction() {
             </p>
           </div>
         </section>
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

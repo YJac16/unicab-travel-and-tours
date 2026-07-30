@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import BackToTop from '../components/BackToTop';
 import ProfileDropdown from '../components/ProfileDropdown';
 
 function CookiePolicy() {
@@ -142,10 +141,7 @@ function CookiePolicy() {
             </div>
           </div>
         </section>
-      </main>
-
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

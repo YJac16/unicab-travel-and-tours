@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
 import ThemeToggle from '../components/ThemeToggle';
-import BackToTop from '../components/BackToTop';
 import PasswordInput from '../components/PasswordInput';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -636,8 +635,6 @@ function AdminProfile() {
           </div>
         </section>
       </main>
-
-      <BackToTop />
     </div>
   );
 }

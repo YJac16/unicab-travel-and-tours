@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { tours } from "../data";
 import { Link } from "react-router-dom";
-import BackToTop from "../components/BackToTop";
 import ProfileDropdown from "../components/ProfileDropdown";
 import SafeImage from "../components/SafeImage";
 
@@ -11,7 +10,6 @@ const formatStars = (rating) => {
 };
 
 function Tours() {
-  const [navOpen, setNavOpen] = useState(false);
   const handleTourDetails = (tour) => {
     alert(
       `${tour.name}\n\n${tour.description}\n\nDuration: ${tour.duration}\nRating: ${formatStars(tour.rating)}\n${tour.priceFrom}\n\nHighlights:\n${tour.highlights.map((h) => `• ${h}`).join("\n")}`
@@ -31,47 +29,37 @@ function Tours() {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <ProfileDropdown />
             </div>
-            
-            <button
-              className="nav-toggle"
-              aria-label="Toggle navigation"
-              aria-expanded={navOpen}
-              onClick={() => setNavOpen((o) => !o)}
-            >
-              <span className="nav-toggle-bar" />
-              <span className="nav-toggle-bar" />
-            </button>
           </div>
 
-          <nav className={`main-nav ${navOpen ? "open" : ""}`} aria-label="Primary">
+          <nav className="main-nav" aria-label="Primary">
             <ul>
               <li>
-                <Link className="link-button" to="/" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/">
                   Home
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/tours" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/tours">
                   Tours
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/vehicles" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/vehicles">
                   Vehicles
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/drivers" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/drivers">
                   Drivers
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/reviews" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/reviews">
                   Reviews
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/membership" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/membership">
                   Membership
                 </Link>
               </li>
@@ -80,7 +68,6 @@ function Tours() {
                   className="link-button" 
                   to="/"
                   onClick={() => {
-                    setNavOpen(false);
                     setTimeout(() => {
                       const aboutSection = document.getElementById('about');
                       if (aboutSection) {
@@ -97,7 +84,6 @@ function Tours() {
                   className="link-button" 
                   to="/"
                   onClick={() => {
-                    setNavOpen(false);
                     setTimeout(() => {
                       const contactSection = document.getElementById('contact');
                       if (contactSection) {
@@ -113,7 +99,7 @@ function Tours() {
                 <Link 
                   className="btn btn-primary btn-compact" 
                   to="/book"
-                  onClick={() => setNavOpen(false)}
+                 
                 >
                   Book Now
                 </Link>
@@ -246,8 +232,6 @@ function Tours() {
         </svg>
         <span className="whatsapp-tooltip">Chat with us</span>
       </a>
-
-      <BackToTop />
     </div>
   );
 }

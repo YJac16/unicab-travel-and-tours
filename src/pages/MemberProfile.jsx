@@ -6,7 +6,6 @@ import { supabase } from '../lib/supabase';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
 import ThemeToggle from '../components/ThemeToggle';
-import BackToTop from '../components/BackToTop';
 
 function MemberProfile() {
   const { user, signOut } = useAuth();
@@ -90,7 +89,6 @@ function MemberProfile() {
           Sign out
         </button>
       </main>
-      <BackToTop />
     </div>
   );
 }

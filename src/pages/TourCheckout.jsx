@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { createBooking, calculateTourPrice, createYocoPayment, formatTourPrice, getMemberSubscriptions } from "../lib/api";
 import { applyMembershipDiscount, getMembershipDiscountLabel } from "../lib/pricing";
-import BackToTop from "../components/BackToTop";
 
 function TourCheckout() {
   const { id } = useParams();
@@ -330,7 +329,6 @@ function TourCheckout() {
           </div>
         </section>
       </main>
-      <BackToTop />
     </div>
   );
 }

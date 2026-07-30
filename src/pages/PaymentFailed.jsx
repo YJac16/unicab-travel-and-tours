@@ -1,6 +1,5 @@
 import React from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import BackToTop from "../components/BackToTop";
 
 function PaymentFailed() {
   const [searchParams] = useSearchParams();
@@ -97,10 +96,7 @@ function PaymentFailed() {
             </div>
           </div>
         </section>
-      </main>
-
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

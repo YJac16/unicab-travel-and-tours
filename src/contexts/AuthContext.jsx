@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const AuthContext = createContext({});
+const VIEW_ROLE_KEY = 'unicab_active_view_role';
+const VIEW_ROLES = ['admin', 'driver', 'customer'];
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -11,33 +13,53 @@ export const useAuth = () => {
   return context;
 };
 
+function readStoredViewRole() {
+  try {
+    const v = sessionStorage.getItem(VIEW_ROLE_KEY);
+    return VIEW_ROLES.includes(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [isOwner, setIsOwner] = useState(false);
+  const [activeViewRole, setActiveViewRoleState] = useState(() => readStoredViewRole());
   const [loading, setLoading] = useState(true);
   const [driverProfile, setDriverProfile] = useState(null);
   const initializedRef = useRef(false);
 
-  // Fetch user role from profiles table
+  const setActiveViewRole = (role) => {
+    const normalized = String(role || '').toLowerCase();
+    const next = normalized === 'member' ? 'customer' : normalized;
+    if (!VIEW_ROLES.includes(next)) return;
+    setActiveViewRoleState(next);
+    try {
+      sessionStorage.setItem(VIEW_ROLE_KEY, next);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const effectiveRole = isOwner && activeViewRole ? activeViewRole : userRole;
+
   const fetchUserRole = async (userId) => {
     try {
-      // Try profiles table first (as per user's context)
       let { data, error } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, is_owner')
         .eq('id', userId)
         .single();
 
-      // If profiles table doesn't exist or returns error, try user_roles table
       if (error && error.code !== 'PGRST116' && !String(error.message || '').includes('Failed to fetch')) {
-        console.log('Profiles table not found, trying user_roles...', error);
         const result = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', userId)
           .single();
-        
-        data = result.data;
+        data = result.data ? { ...result.data, is_owner: false } : null;
         error = result.error;
       }
 
@@ -46,21 +68,34 @@ export const AuthProvider = ({ children }) => {
           console.error('Error fetching user role:', error);
         }
         setUserRole('customer');
+        setIsOwner(false);
         return;
       }
 
       const role = data?.role?.toLowerCase() || 'customer';
+      const owner = Boolean(data?.is_owner);
       setUserRole(role);
-      console.log('User role fetched:', role, 'for user:', userId);
+      setIsOwner(owner);
+      if (owner && !readStoredViewRole()) {
+        setActiveViewRole(role === 'admin' ? 'admin' : role);
+      }
+      if (!owner) {
+        setActiveViewRoleState(null);
+        try {
+          sessionStorage.removeItem(VIEW_ROLE_KEY);
+        } catch {
+          /* ignore */
+        }
+      }
     } catch (error) {
       if (!String(error?.message || '').includes('Failed to fetch')) {
         console.error('Error fetching user role:', error);
       }
       setUserRole('customer');
+      setIsOwner(false);
     }
   };
 
-  // Initialize auth state on mount
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
@@ -71,18 +106,15 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    // Set a timeout to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
       console.warn('Auth initialization timeout - setting loading to false');
       setLoading(false);
-    }, 5000); // 5 second timeout
+    }, 5000);
 
-    // Initialize session immediately
     const initializeAuth = async () => {
       try {
-        // Get initial session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError) {
           console.error('Error getting session:', sessionError);
           clearTimeout(loadingTimeout);
@@ -91,15 +123,13 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (session?.user) {
-          console.log('Session found for user:', session.user.id);
           setUser(session.user);
-          // Fetch role immediately
           await fetchUserRole(session.user.id);
           await fetchDriverProfile(session.user.id);
         } else {
-          console.log('No session found');
           setUser(null);
           setUserRole(null);
+          setIsOwner(false);
         }
       } catch (error) {
         console.error('Error initializing auth:', error);
@@ -111,25 +141,23 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth();
 
-    // Listen for auth state changes
     const {
       data: { subscription },
-      } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // INITIAL_SESSION with no user is normal for anonymous visitors
-      if (event !== 'INITIAL_SESSION' || session?.user) {
-        console.log('Auth state changed:', event, session?.user?.id || 'anonymous');
-      }
-      
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT' || !session?.user) {
-        // Clear all auth state on sign out
         setUser(null);
         setUserRole(null);
+        setIsOwner(false);
+        setActiveViewRoleState(null);
         setDriverProfile(null);
-        // Clear any cached tokens
         localStorage.removeItem('auth_token');
+        try {
+          sessionStorage.removeItem(VIEW_ROLE_KEY);
+        } catch {
+          /* ignore */
+        }
       } else if (session?.user) {
         setUser(session.user);
-        // Fetch role after session is established
         await fetchUserRole(session.user.id);
         await fetchDriverProfile(session.user.id);
       }
@@ -146,14 +174,14 @@ export const AuthProvider = ({ children }) => {
         .from('drivers')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching driver profile:', error);
         return;
       }
 
-      setDriverProfile(data);
+      setDriverProfile(data || null);
     } catch (error) {
       console.error('Error fetching driver profile:', error);
     }
@@ -171,21 +199,17 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (error) {
-        console.error('Sign in error:', error);
         return { data: null, error };
       }
 
       if (data?.user) {
-        console.log('Sign in successful for user:', data.user.id);
         setUser(data.user);
-        // Fetch role after successful login
         await fetchUserRole(data.user.id);
         await fetchDriverProfile(data.user.id);
       }
 
       return { data, error: null };
     } catch (err) {
-      console.error('Sign in exception:', err);
       return { data: null, error: { message: err.message || 'Sign in failed' } };
     }
   };
@@ -198,12 +222,9 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: metadata,
-      },
+      options: { data: metadata },
     });
 
-    // Profile is auto-created by handle_new_user trigger; sync display fields if provided
     if (!error && data?.user && (metadata.full_name || metadata.name)) {
       await supabase
         .from('profiles')
@@ -241,15 +262,20 @@ export const AuthProvider = ({ children }) => {
       const { error } = await supabase.auth.signOut();
       setUser(null);
       setUserRole(null);
+      setIsOwner(false);
+      setActiveViewRoleState(null);
       setDriverProfile(null);
-      // Clear any JWT tokens from localStorage
       localStorage.removeItem('auth_token');
+      try {
+        sessionStorage.removeItem(VIEW_ROLE_KEY);
+      } catch {
+        /* ignore */
+      }
       return { error };
     } catch (err) {
-      console.error('Sign out error:', err);
-      // Still clear state even if signOut fails
       setUser(null);
       setUserRole(null);
+      setIsOwner(false);
       setDriverProfile(null);
       localStorage.removeItem('auth_token');
       return { error: { message: err.message } };
@@ -259,6 +285,10 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     userRole,
+    effectiveRole,
+    isOwner,
+    activeViewRole: activeViewRole || userRole,
+    setActiveViewRole,
     driverProfile,
     loading,
     signIn,
@@ -266,14 +296,9 @@ export const AuthProvider = ({ children }) => {
     signInWithGoogle,
     signOut,
     isAuthenticated: !!user,
-    isAdmin: userRole === 'admin',
-    isDriver: userRole === 'driver',
+    isAdmin: effectiveRole === 'admin',
+    isDriver: effectiveRole === 'driver',
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-
-
-
-

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import BackToTop from '../components/BackToTop';
 import SiteFooter from '../components/SiteFooter';
 
 function TermsOfService() {
@@ -55,7 +54,6 @@ function TermsOfService() {
         </section>
       </main>
       <SiteFooter />
-      <BackToTop />
     </div>
   );
 }

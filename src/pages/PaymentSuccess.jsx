@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { confirmYocoPayment } from "../lib/api";
-import BackToTop from "../components/BackToTop";
 
 function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -56,9 +55,7 @@ function PaymentSuccess() {
             )}
           </div>
         </section>
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

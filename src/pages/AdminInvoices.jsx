@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import AdminNav from '../components/AdminNav';
-import BackToTop from '../components/BackToTop';
 import {
   getAdminInvoices,
   createAdminInvoice,
@@ -110,8 +109,6 @@ export default function AdminInvoices() {
             {!invoices.length && <p>No invoices yet.</p>}
           </div>
         )}
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

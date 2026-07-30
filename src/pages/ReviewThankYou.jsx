@@ -1,6 +1,5 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import BackToTop from "../components/BackToTop";
 
 function ReviewThankYou() {
   const location = useLocation();
@@ -65,10 +64,7 @@ function ReviewThankYou() {
             </div>
           </div>
         </section>
-      </main>
-
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

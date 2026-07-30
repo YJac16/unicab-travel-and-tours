@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getTours, formatTourPrice, calculateTourPrice } from "../lib/api";
-import BackToTop from "../components/BackToTop";
 import ProfileDropdown from "../components/ProfileDropdown";
 import SafeImage from "../components/SafeImage";
 import { useLocale } from "../contexts/LocaleContext";
@@ -15,9 +14,7 @@ const formatStars = (rating) => {
 /**
  * Booking entry: pick a tour (live /api/tours with local fallback), then booking form.
  */
-function Book() {
-  const [navOpen, setNavOpen] = useState(false);
-  const [tours, setTours] = useState([]);
+function Book() {  const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
   const { t } = useLocale();
 
@@ -44,36 +41,25 @@ function Book() {
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
 
-          <button
-            className="nav-toggle"
-            aria-label="Toggle navigation"
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen((o) => !o)}
-          >
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-          </button>
-
-          <nav className={`main-nav ${navOpen ? "open" : ""}`} aria-label="Primary">
+          <nav className="main-nav" aria-label="Primary">
             <ul>
               <li>
-                <Link className="link-button" to="/" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/">
                   {t("home")}
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/tours" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/tours">
                   {t("tours")}
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/book" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/book">
                   {t("book")}
                 </Link>
               </li>
               <li className="cta-nav">
-                <Link className="btn btn-primary btn-compact" to="/book" onClick={() => setNavOpen(false)}>
+                <Link className="btn btn-primary btn-compact" to="/book">
                   {t("bookNow")}
                 </Link>
               </li>
@@ -158,9 +144,7 @@ function Book() {
             )}
           </div>
         </section>
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

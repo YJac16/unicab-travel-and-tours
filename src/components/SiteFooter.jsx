@@ -11,7 +11,7 @@ export default function SiteFooter() {
           &copy; <span>{year}</span> UNICAB Travel &amp; Tours. All rights reserved.
         </p>
         <p className="footer-meta">
-          Premium private transfers &amp; tours in Cape Town and the Western Cape.
+          Premium private transfers &amp; tours — Cape Town &amp; the Western Cape.
         </p>
         <div className="footer-contact" style={{ marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-soft)' }}>
           <a href={`mailto:${siteConfig.email}`} style={{ color: 'var(--accent-gold)', textDecoration: 'none', marginRight: '1rem' }}>

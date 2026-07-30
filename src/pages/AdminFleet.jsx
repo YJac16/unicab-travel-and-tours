@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import AdminNav from '../components/AdminNav';
-import BackToTop from '../components/BackToTop';
 import { getAdminVehicles, createAdminVehicles, updateAdminVehicle, deleteAdminVehicle } from '../lib/api';
 
 export default function AdminFleet() {
@@ -101,8 +100,6 @@ export default function AdminFleet() {
             {!vehicles.length && <p>No vehicles yet. Add how many you have in the fleet above.</p>}
           </div>
         )}
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

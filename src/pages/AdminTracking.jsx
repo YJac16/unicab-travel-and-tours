@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import AdminNav from '../components/AdminNav';
-import BackToTop from '../components/BackToTop';
 import LiveMap from '../components/LiveMap';
 import { getAdminTracking } from '../lib/api';
 
@@ -49,8 +48,6 @@ export default function AdminTracking() {
             {!trips.length && <p>No drivers currently on active trips.</p>}
           </div>
         )}
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

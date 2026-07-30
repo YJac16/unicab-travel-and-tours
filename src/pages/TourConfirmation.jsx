@@ -1,6 +1,5 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import BackToTop from "../components/BackToTop";
 import { siteConfig } from "../config";
 
 function TourConfirmation() {
@@ -141,8 +140,6 @@ function TourConfirmation() {
           </div>
         </section>
       </main>
-
-      <BackToTop />
     </div>
   );
 }

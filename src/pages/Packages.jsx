@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import DocumentTitle from '../components/DocumentTitle';
 import SiteFooter from '../components/SiteFooter';
-import BackToTop from '../components/BackToTop';
 import { getPackages, submitLeadEnquiry, formatTourPrice } from '../lib/api';
 
 export default function Packages() {
@@ -147,7 +146,6 @@ export default function Packages() {
         )}
       </main>
       <SiteFooter />
-      <BackToTop />
     </div>
   );
 }

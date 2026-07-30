@@ -9,7 +9,6 @@ import {
 import { membershipPlans } from '../data';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
-import BackToTop from '../components/BackToTop';
 
 const TIER_STYLES = {
   explorer: { border: '#5b8c5a', bg: '#f3faf4', badge: '#5b8c5a' },
@@ -142,8 +141,6 @@ export default function MemberSubscriptions() {
             })}
           </div>
         )}
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

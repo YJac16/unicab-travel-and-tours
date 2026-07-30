@@ -3,7 +3,6 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { membershipPlans } from "../data";
 import { confirmYocoPayment } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
-import BackToTop from "../components/BackToTop";
 
 function MembershipSuccess() {
   const location = useLocation();
@@ -145,9 +144,7 @@ function MembershipSuccess() {
             </div>
           </div>
         </section>
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
-import BackToTop from '../components/BackToTop';
 import {
   getDriverBooking,
   updateDriverTripStatus,
@@ -165,8 +164,6 @@ export default function DriverTrip() {
             </button>
           </div>
         </section>
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

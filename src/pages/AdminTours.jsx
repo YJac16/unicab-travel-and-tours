@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import AdminNav from '../components/AdminNav';
-import BackToTop from '../components/BackToTop';
 import { getAdminTours, createAdminTour, updateAdminTour } from '../lib/api';
 
 export default function AdminTours() {
@@ -140,8 +139,6 @@ export default function AdminTours() {
             {!tours.length && <p>No tours in database yet. Add one or seed from static data.</p>}
           </div>
         )}
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

@@ -1,10 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { membershipPlans } from "../data";
-import BackToTop from "../components/BackToTop";
 
 function MembershipComparison() {
-  const [navOpen, setNavOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSelectPlan = (planId) => {
@@ -22,45 +20,35 @@ function MembershipComparison() {
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
 
-          <button
-            className="nav-toggle"
-            aria-label="Toggle navigation"
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen((o) => !o)}
-          >
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-          </button>
-
-          <nav className={`main-nav ${navOpen ? "open" : ""}`} aria-label="Primary">
+          <nav className="main-nav" aria-label="Primary">
             <ul>
               <li>
-                <Link className="link-button" to="/" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/">
                   Home
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/tours" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/tours">
                   Tours
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/vehicles" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/vehicles">
                   Vehicles
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/drivers" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/drivers">
                   Drivers
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/reviews" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/reviews">
                   Reviews
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/membership" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/membership">
                   Membership
                 </Link>
               </li>
@@ -69,7 +57,6 @@ function MembershipComparison() {
                   className="link-button" 
                   to="/"
                   onClick={() => {
-                    setNavOpen(false);
                     setTimeout(() => {
                       const aboutSection = document.getElementById('about');
                       if (aboutSection) {
@@ -86,7 +73,6 @@ function MembershipComparison() {
                   className="link-button" 
                   to="/"
                   onClick={() => {
-                    setNavOpen(false);
                     setTimeout(() => {
                       const contactSection = document.getElementById('contact');
                       if (contactSection) {
@@ -102,7 +88,7 @@ function MembershipComparison() {
                 <Link 
                   className="btn btn-primary btn-compact" 
                   to="/book"
-                  onClick={() => setNavOpen(false)}
+                 
                 >
                   Book Now
                 </Link>
@@ -364,8 +350,6 @@ function MembershipComparison() {
         </svg>
         <span className="whatsapp-tooltip">Chat with us</span>
       </a>
-
-      <BackToTop />
     </div>
   );
 }

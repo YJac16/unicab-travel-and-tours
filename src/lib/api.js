@@ -1347,6 +1347,64 @@ export const getDriverReviewStats = async (driverId) => {
   return { data: { average, count }, error: null };
 };
 
+/** Approved-review leaderboards for admin performance surface */
+export const getPerformanceLeaderboard = async () => {
+  if (!isSupabaseConfigured()) {
+    return { data: { drivers: [], tours: [] }, error: null };
+  }
+
+  try {
+    const [{ data: driverRows }, { data: tourRows }, { data: driverMeta }, { data: tourMeta }] =
+      await Promise.all([
+        supabase.from('driver_reviews').select('driver_id, driver_key, rating').eq('approved', true),
+        supabase.from('tour_reviews').select('tour_id, rating').eq('approved', true),
+        supabase.from('drivers').select('id, name'),
+        supabase.from('tours').select('id, name, slug'),
+      ]);
+
+    const driverNames = Object.fromEntries((driverMeta || []).map((d) => [d.id, d.name]));
+    const tourNames = Object.fromEntries(
+      (tourMeta || []).flatMap((t) => [
+        [t.id, t.name],
+        [t.slug, t.name],
+      ])
+    );
+
+    const rollup = (rows, keyFn, nameFn) => {
+      const map = {};
+      for (const row of rows || []) {
+        const key = keyFn(row);
+        if (!key) continue;
+        if (!map[key]) map[key] = { key, name: nameFn(row, key), sum: 0, count: 0 };
+        map[key].sum += Number(row.rating) || 0;
+        map[key].count += 1;
+      }
+      return Object.values(map)
+        .map((x) => ({ ...x, average: x.count ? x.sum / x.count : 0 }))
+        .sort((a, b) => b.average - a.average || b.count - a.count)
+        .slice(0, 5);
+    };
+
+    return {
+      data: {
+        drivers: rollup(
+          driverRows,
+          (r) => r.driver_id || r.driver_key,
+          (r, key) => driverNames[r.driver_id] || driverNames[key] || String(key)
+        ),
+        tours: rollup(
+          tourRows,
+          (r) => r.tour_id,
+          (r, key) => tourNames[key] || String(key)
+        ),
+      },
+      error: null,
+    };
+  } catch (error) {
+    return { data: { drivers: [], tours: [] }, error };
+  }
+};
+
 export const verifyCustomerBooking = async (bookingId, userId) => {
   if (!isSupabaseConfigured() || !bookingId || !userId) {
     return { data: { exists: false, completed: false }, error: null };
@@ -1396,12 +1454,17 @@ export const submitTourReview = async ({ tourId, bookingId, userId, rating, comm
     const localReview = {
       id: `local-${Date.now()}`,
       ...payload,
-      approved: true,
+      approved: false,
       created_at: new Date().toISOString(),
     };
     const existing = readLocalStorageJson(LOCAL_TOUR_REVIEWS_KEY);
     writeLocalStorageJson(LOCAL_TOUR_REVIEWS_KEY, [localReview, ...existing]);
-    return { data: localReview, error: null };
+    return {
+      data: localReview,
+      error: null,
+      pendingModeration: true,
+      message: 'Review saved and awaiting approval.',
+    };
   }
 
   try {
@@ -1415,25 +1478,35 @@ export const submitTourReview = async ({ tourId, bookingId, userId, rating, comm
       const localReview = {
         id: `local-${Date.now()}`,
         ...payload,
-        approved: true,
+        approved: false,
         created_at: new Date().toISOString(),
       };
       const existing = readLocalStorageJson(LOCAL_TOUR_REVIEWS_KEY);
       writeLocalStorageJson(LOCAL_TOUR_REVIEWS_KEY, [localReview, ...existing]);
-      return { data: localReview, error: null };
+      return {
+        data: localReview,
+        error: null,
+        pendingModeration: true,
+        message: 'Review saved and awaiting approval.',
+      };
     }
 
-    return { data, error: null };
+    return { data, error: null, pendingModeration: true };
   } catch {
     const localReview = {
       id: `local-${Date.now()}`,
       ...payload,
-      approved: true,
+      approved: false,
       created_at: new Date().toISOString(),
     };
     const existing = readLocalStorageJson(LOCAL_TOUR_REVIEWS_KEY);
     writeLocalStorageJson(LOCAL_TOUR_REVIEWS_KEY, [localReview, ...existing]);
-    return { data: localReview, error: null };
+    return {
+      data: localReview,
+      error: null,
+      pendingModeration: true,
+      message: 'Review saved and awaiting approval.',
+    };
   }
 };
 
@@ -1455,12 +1528,17 @@ export const submitDriverReview = async ({ driverId, bookingId, userId, rating, 
       id: `local-${Date.now()}`,
       ...payload,
       driver_key: String(driverId),
-      approved: true,
+      approved: false,
       created_at: new Date().toISOString(),
     };
     const existing = readLocalStorageJson(LOCAL_DRIVER_REVIEWS_KEY);
     writeLocalStorageJson(LOCAL_DRIVER_REVIEWS_KEY, [localReview, ...existing]);
-    return { data: localReview, error: null };
+    return {
+      data: localReview,
+      error: null,
+      pendingModeration: true,
+      message: 'Review saved and awaiting approval.',
+    };
   }
 
   try {
@@ -1475,26 +1553,36 @@ export const submitDriverReview = async ({ driverId, bookingId, userId, rating, 
         id: `local-${Date.now()}`,
         ...payload,
         driver_key: String(driverId),
-        approved: true,
+        approved: false,
         created_at: new Date().toISOString(),
       };
       const existing = readLocalStorageJson(LOCAL_DRIVER_REVIEWS_KEY);
       writeLocalStorageJson(LOCAL_DRIVER_REVIEWS_KEY, [localReview, ...existing]);
-      return { data: localReview, error: null };
+      return {
+        data: localReview,
+        error: null,
+        pendingModeration: true,
+        message: 'Review saved and awaiting approval.',
+      };
     }
 
-    return { data, error: null };
+    return { data, error: null, pendingModeration: true };
   } catch {
     const localReview = {
       id: `local-${Date.now()}`,
       ...payload,
       driver_key: String(driverId),
-      approved: true,
+      approved: false,
       created_at: new Date().toISOString(),
     };
     const existing = readLocalStorageJson(LOCAL_DRIVER_REVIEWS_KEY);
     writeLocalStorageJson(LOCAL_DRIVER_REVIEWS_KEY, [localReview, ...existing]);
-    return { data: localReview, error: null };
+    return {
+      data: localReview,
+      error: null,
+      pendingModeration: true,
+      message: 'Review saved and awaiting approval.',
+    };
   }
 };
 

@@ -27,7 +27,12 @@ const verifyToken = (token) => {
 const { getSupabaseAdmin, isSupabaseConfigured } = require('../../../lib/supabaseAdmin');
 
 const attachDriverId = async (userInfo) => {
-  if (!userInfo || userInfo.role !== 'driver') {
+  if (!userInfo) {
+    return userInfo;
+  }
+
+  // Resolve driver row for drivers and owners (hub inspection)
+  if (userInfo.role !== 'driver' && !userInfo.isOwner) {
     return userInfo;
   }
 
@@ -81,7 +86,7 @@ const verifySupabaseToken = async (token) => {
     // Get user role from profiles table
     const { data: profile } = await supabaseAdmin
       .from('profiles')
-      .select('role, full_name')
+      .select('role, full_name, is_owner')
       .eq('id', user.id)
       .maybeSingle();
 
@@ -92,6 +97,7 @@ const verifySupabaseToken = async (token) => {
       id: user.id,
       email: user.email,
       role,
+      isOwner: Boolean(profile?.is_owner),
       name: profile?.full_name || user.user_metadata?.full_name || null
     };
   } catch (error) {
@@ -163,9 +169,8 @@ const requireAdmin = (req, res, next) => {
     });
   }
 
-  // Support both uppercase and lowercase role names
   const role = req.user.role?.toLowerCase();
-  if (role !== 'admin') {
+  if (role !== 'admin' && !req.user.isOwner) {
     return res.status(403).json({
       success: false,
       error: 'Admin access required',
@@ -185,9 +190,8 @@ const requireDriver = (req, res, next) => {
     });
   }
 
-  // Support both uppercase and lowercase role names
   const role = req.user.role?.toLowerCase();
-  if (role !== 'driver') {
+  if (role !== 'driver' && !req.user.isOwner) {
     return res.status(403).json({
       success: false,
       error: 'Driver access required',
@@ -207,9 +211,8 @@ const requireMember = (req, res, next) => {
     });
   }
 
-  // Support both uppercase and lowercase role names
   const role = req.user.role?.toLowerCase();
-  if (role !== 'member' && role !== 'customer') {
+  if (role !== 'member' && role !== 'customer' && !req.user.isOwner) {
     return res.status(403).json({
       success: false,
       error: 'Member access required',

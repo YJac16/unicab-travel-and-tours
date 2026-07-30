@@ -12,9 +12,9 @@ import {
   unblockDriverDateAdmin,
   getAdminVehicles,
   dispatchAdminBooking,
+  getPerformanceLeaderboard,
 } from '../lib/api';
 import AdminNav from '../components/AdminNav';
-import BackToTop from '../components/BackToTop';
 
 // Add Driver Form Component
 function AddDriverForm({ onDriverAdded }) {
@@ -397,6 +397,7 @@ function AdminDashboard() {
     date_to: '',
     driver_id: '',
   });
+  const [leaderboard, setLeaderboard] = useState({ drivers: [], tours: [] });
 
   useEffect(() => {
     loadData();
@@ -405,16 +406,18 @@ function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [bookingsData, driversData, vehiclesData] = await Promise.all([
+      const [bookingsData, driversData, vehiclesData, perfData] = await Promise.all([
         getAdminBookings(filters),
         getAdminDrivers(),
         getAdminVehicles(),
+        getPerformanceLeaderboard(),
       ]);
 
       if (bookingsData.data) setBookings(bookingsData.data);
       if (driversData.data) setDrivers(driversData.data);
       if (vehiclesData.data) setVehicles(vehiclesData.data || []);
       if (vehiclesData.summary) setFleetSummary(vehiclesData.summary);
+      if (perfData.data) setLeaderboard(perfData.data);
     } catch (error) {
       console.error('Error loading data:', error);
       // If unauthorized, redirect to login
@@ -524,6 +527,46 @@ function AdminDashboard() {
                 </div>
               )}
               <h1 style={{ marginBottom: "2rem" }}>Admin Dashboard</h1>
+
+              <div className="performance-leaderboard" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+                <div className="soft-panel" style={{ padding: '1.25rem', border: '1px solid var(--border-soft)', borderRadius: '12px', background: 'var(--bg-elevated, #fff)' }}>
+                  <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Top chauffeurs</h2>
+                  <p style={{ color: 'var(--text-soft)', marginTop: 0, fontSize: '0.85rem' }}>
+                    Approved guest ratings — celebrate 4.5+ performers.
+                  </p>
+                  {(leaderboard.drivers || []).length === 0 ? (
+                    <p style={{ color: 'var(--text-soft)', marginBottom: 0 }}>No approved driver reviews yet.</p>
+                  ) : (
+                    <ol style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                      {leaderboard.drivers.map((d) => (
+                        <li key={d.key} style={{ marginBottom: '0.35rem' }}>
+                          <strong>{d.name}</strong> — {d.average.toFixed(1)} ({d.count})
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  <Link to="/admin/reviews" className="link-button" style={{ display: 'inline-block', marginTop: '0.75rem' }}>
+                    Moderate reviews
+                  </Link>
+                </div>
+                <div className="soft-panel" style={{ padding: '1.25rem', border: '1px solid var(--border-soft)', borderRadius: '12px', background: 'var(--bg-elevated, #fff)' }}>
+                  <h2 style={{ marginTop: 0, fontSize: '1.1rem' }}>Top tours</h2>
+                  <p style={{ color: 'var(--text-soft)', marginTop: 0, fontSize: '0.85rem' }}>
+                    Highest-rated experiences by approved reviews.
+                  </p>
+                  {(leaderboard.tours || []).length === 0 ? (
+                    <p style={{ color: 'var(--text-soft)', marginBottom: 0 }}>No approved tour reviews yet.</p>
+                  ) : (
+                    <ol style={{ margin: 0, paddingLeft: '1.2rem' }}>
+                      {leaderboard.tours.map((t) => (
+                        <li key={t.key} style={{ marginBottom: '0.35rem' }}>
+                          <strong>{t.name}</strong> — {t.average.toFixed(1)} ({t.count})
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              </div>
 
               {/* Stats */}
               <div style={{ 
@@ -903,8 +946,6 @@ function AdminDashboard() {
           </div>
         </section>
       </main>
-
-      <BackToTop />
     </div>
   );
 }

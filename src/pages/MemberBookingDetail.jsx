@@ -5,7 +5,6 @@ import { supabase } from '../lib/supabase';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
 import LiveMap from '../components/LiveMap';
-import BackToTop from '../components/BackToTop';
 import TourReviewForm from '../components/TourReviewForm';
 import DriverReviewForm from '../components/DriverReviewForm';
 
@@ -161,25 +160,31 @@ export default function MemberBookingDetail() {
           </section>
         )}
 
-        {(booking.status === 'completed' || booking.trip_status === 'completed') && (
-          <section style={{ marginTop: '1.5rem', display: 'grid', gap: '1rem' }}>
-            <h3>Leave a review</h3>
-            {booking.tour_id && (
-              <TourReviewForm
-                tourId={booking.tour_id || booking.tour?.id}
-                bookingId={booking.id}
-              />
-            )}
-            {(booking.driver_id || booking.driver?.id) && (
-              <DriverReviewForm
-                driverId={booking.driver_id || booking.driver?.id}
-                bookingId={booking.id}
-              />
-            )}
+        {(booking.status === 'completed' ||
+          booking.trip_status === 'completed' ||
+          booking.payment_status === 'paid') && (
+          <section className="review-invite-panel" style={{ marginTop: '1.5rem' }}>
+            <h3>How was your experience?</h3>
+            <p style={{ color: 'var(--text-soft)', marginTop: 0 }}>
+              Your rating helps our chauffeurs and guides stay at a five-star standard. Reviews are
+              published after a quick moderation check.
+            </p>
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              {booking.tour_id && (
+                <TourReviewForm
+                  tourId={booking.tour_id || booking.tour?.id}
+                  bookingId={booking.id}
+                />
+              )}
+              {(booking.driver_id || booking.driver?.id) && (
+                <DriverReviewForm
+                  driverId={booking.driver_id || booking.driver?.id}
+                  bookingId={booking.id}
+                />
+              )}
+            </div>
           </section>
         )}
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

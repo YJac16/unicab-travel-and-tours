@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams, useLocation } from "react-router-dom";
 import { formatTourPrice } from "../lib/api";
-import BackToTop from "../components/BackToTop";
 
 /**
  * Booking confirmation — loads booking from custom Supabase system
@@ -106,9 +105,7 @@ function BookingConfirmation() {
             </div>
           </div>
         </section>
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

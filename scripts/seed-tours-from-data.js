@@ -1,7 +1,6 @@
 /**
  * Seed tours table from src/data.js progressive pricing.
  * Usage: node scripts/seed-tours-from-data.js
- * Requires SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
  */
 require('dotenv').config();
 const fs = require('fs');
@@ -16,22 +15,41 @@ const key =
   process.env.SERVICE_ROLE_SECRET ||
   process.env.SUPABASE_SERVICE_KEY;
 
+function parseToursFromDataJs(raw) {
+  const start = raw.indexOf('export const tours = [');
+  if (start < 0) throw new Error('tours export not found in data.js');
+  let i = raw.indexOf('[', start);
+  let depth = 0;
+  let end = -1;
+  for (; i < raw.length; i += 1) {
+    const ch = raw[i];
+    if (ch === '[') depth += 1;
+    else if (ch === ']') {
+      depth -= 1;
+      if (depth === 0) {
+        end = i + 1;
+        break;
+      }
+    }
+  }
+  if (end < 0) throw new Error('Could not parse tours array');
+  let body = raw.slice(raw.indexOf('[', start), end);
+  // Strip getPrice methods which contain arrows/braces that break JSON-ish eval
+  body = body.replace(/getPrice:\s*\([^)]*\)\s*=>\s*getPriceForPax\([\s\S]*?\),/g, '');
+  // Quote unquoted keys carefully via Function
+  const tours = new Function(`return (${body});`)();
+  return tours;
+}
+
 async function main() {
   if (!url || !key) {
     console.error('Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY');
     process.exit(1);
   }
 
-  // Load data.js via dynamic import of built-like content is hard in CJS;
-  // parse a minimal extract by requiring through vite-unfriendly path — use eval of export.
   const dataPath = path.join(__dirname, '..', 'src', 'data.js');
   const raw = fs.readFileSync(dataPath, 'utf8');
-  // Extract tours array with a Function wrapper after converting export to module.exports-like
-  const transformed = raw
-    .replace(/export const /g, 'const ')
-    .replace(/export \{[^}]+\};?/g, '');
-  const fn = new Function(`${transformed}\nreturn { tours, membershipPlans };`);
-  const { tours } = fn();
+  const tours = parseToursFromDataJs(raw);
 
   const admin = createClient(url, key, {
     auth: { autoRefreshToken: false, persistSession: false },
@@ -41,6 +59,7 @@ async function main() {
 
   for (const t of tours) {
     const price =
+      t.pricing?.['1'] ||
       t.pricing?.base ||
       (typeof t.price === 'number' ? t.price : null) ||
       0;

@@ -19,9 +19,11 @@ const serviceKey =
 const USERS = [
   {
     email: 'yaseenjacobs97@gmail.com',
-    password: 'Yaseen97',
+    password: 'Yaseen97!',
     role: 'admin',
     full_name: 'Yaseen Jacobs',
+    is_owner: true,
+    ensure_driver_row: true,
   },
   {
     email: 'admin@unicabtravel.co.za',
@@ -83,19 +85,19 @@ async function ensureUser(admin, spec) {
     console.log(`Created auth user: ${spec.email}`);
   }
 
-  const { error: profileError } = await admin.from('profiles').upsert(
-    {
-      id: userId,
-      role: spec.role,
-      email: spec.email.toLowerCase(),
-      full_name: spec.full_name,
-    },
-    { onConflict: 'id' }
-  );
-  if (profileError) throw profileError;
-  console.log(`  profile role=${spec.role}`);
+  const profileRow = {
+    id: userId,
+    role: spec.role,
+    email: spec.email.toLowerCase(),
+    full_name: spec.full_name,
+  };
+  if (spec.is_owner) profileRow.is_owner = true;
 
-  if (spec.role === 'driver') {
+  const { error: profileError } = await admin.from('profiles').upsert(profileRow, { onConflict: 'id' });
+  if (profileError) throw profileError;
+  console.log(`  profile role=${spec.role}${spec.is_owner ? ' is_owner=true' : ''}`);
+
+  if (spec.role === 'driver' || spec.ensure_driver_row) {
     const { data: existingDriver } = await admin
       .from('drivers')
       .select('id')
@@ -137,9 +139,9 @@ function printCredentials() {
 === Hub test logins ===
 Sign in at: /login  (or https://www.unicabtraveltours.com/login)
 
-Owner Admin
+Owner Admin (hub switcher: Admin / Driver / Member)
   Email:    yaseenjacobs97@gmail.com
-  Password: Yaseen97
+  Password: Yaseen97!
   Hub:      /admin/dashboard
 
 Admin

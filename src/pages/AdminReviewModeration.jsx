@@ -4,7 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { getPendingReviews, approveReview, rejectReview } from '../lib/api';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
-import BackToTop from '../components/BackToTop';
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -297,8 +296,6 @@ function AdminReviewModeration() {
           </div>
         </section>
       </main>
-
-      <BackToTop />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { tours, vehicles, drivers, membershipPlans } from "../data";
 import { siteConfig } from "../config";
 import DocumentTitle from "../components/DocumentTitle";
@@ -25,11 +25,10 @@ const navItems = [
 ];
 
 function Home() {
-  const [navOpen, setNavOpen] = useState(false);
+  const location = useLocation();
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
@@ -50,22 +49,19 @@ function Home() {
     };
   }, []);
 
-  // Back to top button visibility
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 400);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
     if (!el) return;
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     el.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
-    setNavOpen(false);
   };
+
+  useEffect(() => {
+    const hash = location.hash?.replace(/^#/, "");
+    if (!hash) return;
+    const timer = window.setTimeout(() => scrollToSection(hash), 50);
+    return () => window.clearTimeout(timer);
+  }, [location.hash]);
 
   const validate = (data) => {
     const nextErrors = {};
@@ -132,12 +128,6 @@ function Home() {
     }
   };
 
-  const handleTourDetails = (tour) => {
-    alert(
-      `${tour.name}\n\n${tour.description}\n\nDuration: ${tour.duration}\nRating: ${formatStars(tour.rating)}\n${tour.priceFrom}\n\nHighlights:\n${tour.highlights.map((h) => `• ${h}`).join("\n")}`
-    );
-  };
-
   return (
     <>
       <DocumentTitle
@@ -154,19 +144,9 @@ function Home() {
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <ProfileDropdown />
             </div>
-            
-            <button
-              className="nav-toggle"
-              aria-label="Toggle navigation"
-              aria-expanded={navOpen}
-              onClick={() => setNavOpen((o) => !o)}
-            >
-              <span className="nav-toggle-bar" />
-              <span className="nav-toggle-bar" />
-            </button>
           </div>
 
-          <nav className={`main-nav ${navOpen ? "open" : ""}`} aria-label="Primary">
+          <nav className="main-nav" aria-label="Primary">
             <ul>
               {navItems.map((item) => (
                 <li key={item.id}>
@@ -174,23 +154,21 @@ function Home() {
                     <Link 
                       className="link-button" 
                       to={item.path}
-                      onClick={(e) => {
-                        setNavOpen(false);
-                        // Ensure navigation happens
+                      onClick={() => {
                         window.scrollTo(0, 0);
                       }}
                     >
                       {item.label}
                     </Link>
                   ) : (
-                    <a className="link-button" href={`#${item.id}`} onClick={() => { scrollToSection(item.id); setNavOpen(false); }}>
+                    <a className="link-button" href={`#${item.id}`} onClick={() => { scrollToSection(item.id); }}>
                       {item.label}
                     </a>
                   )}
                 </li>
               ))}
               <li className="cta-nav">
-                <a className="btn btn-primary" href="/book" onClick={() => setNavOpen(false)}>
+                <a className="btn btn-primary" href="/book">
                   Book Now
                 </a>
               </li>
@@ -205,66 +183,19 @@ function Home() {
           <div className="hero-overlay"></div>
           <div className="container hero-inner hero-centered">
             <h1 id="hero-heading">
-              <span className="hero-title-main">Discover Cape Town</span>
-              <span className="hero-title-accent">In Premium Style</span>
+              <span className="hero-brand">UNICAB</span>
+              <span className="hero-title-main">Private luxury across the Cape</span>
             </h1>
             <p className="hero-subtitle">
-              <span className="desktop-only">Private tours, airport transfers, and customized experiences with licensed guides.</span>
-              <span className="mobile-only">Private tours, transfers & experiences</span>
+              Chauffeured transfers and guided tours with discretion, polish, and local mastery.
             </p>
             <div className="hero-actions">
               <Link to="/book" className="btn btn-primary" onClick={() => window.scrollTo(0, 0)}>
                 Book Now
               </Link>
-              <button className="btn btn-grey" onClick={() => scrollToSection("tours")}>
+              <button type="button" className="btn btn-grey" onClick={() => scrollToSection("tours")}>
                 Explore Tours
               </button>
-            </div>
-            <div className="hero-stats">
-              <div className="hero-stat">
-                <span className="stat-value">35+</span>
-                <span className="stat-label">Years of service</span>
-              </div>
-              <div className="hero-stat">
-                <span className="stat-value">Safe &amp; Reliable</span>
-                <span className="stat-label">Fully licensed &amp; insured</span>
-              </div>
-              <div className="hero-stat">
-                <span className="stat-value">24/7</span>
-                <span className="stat-label">Operations &amp; dispatch</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Quick Navigation - What We Do */}
-        <section className="quick-nav-section">
-          <div className="container">
-            <div className="quick-nav-grid">
-              <Link to="/tours" className="quick-nav-card" onClick={() => window.scrollTo(0, 0)}>
-                <div className="quick-nav-icon">🗺️</div>
-                <h3>Tours</h3>
-                <p className="mobile-only">Explore</p>
-                <p className="desktop-only">Curated experiences</p>
-              </Link>
-              <Link to="/vehicles" className="quick-nav-card" onClick={() => window.scrollTo(0, 0)}>
-                <div className="quick-nav-icon">🚗</div>
-                <h3>Fleet</h3>
-                <p className="mobile-only">Vehicles</p>
-                <p className="desktop-only">Premium vehicles</p>
-              </Link>
-              <Link to="/drivers" className="quick-nav-card" onClick={() => window.scrollTo(0, 0)}>
-                <div className="quick-nav-icon">👨‍✈️</div>
-                <h3>Drivers</h3>
-                <p className="mobile-only">Experts</p>
-                <p className="desktop-only">Local knowledge</p>
-              </Link>
-              <a href="#contact" className="quick-nav-card" onClick={(e) => { e.preventDefault(); scrollToSection("contact"); }}>
-                <div className="quick-nav-icon">📞</div>
-                <h3>Book</h3>
-                <p className="mobile-only">Now</p>
-                <p className="desktop-only">Get started</p>
-              </a>
             </div>
           </div>
         </section>
@@ -273,28 +204,23 @@ function Home() {
           <div className="container section-inner">
             <header className="section-header center">
               <p className="eyebrow">Why UNICAB</p>
-              <h2>Your Trusted Travel Partner</h2>
+              <h2>Quiet luxury. Exact timing.</h2>
               <p className="section-intro max-720">
-                <span className="desktop-only">Experience the difference of premium service with licensed guides, fully insured vehicles, and
-                punctuality you can count on.</span>
-                <span className="mobile-only">Premium service with licensed guides, fully insured vehicles, and punctuality.</span>
+                Licensed chauffeurs, fully insured fleet, and itineraries paced for travellers who expect more than a tour bus.
               </p>
             </header>
             <div className="why-grid">
               <div className="why-card">
-                <div className="why-icon">✓</div>
-                <h3>Licensed &amp; Insured</h3>
-                <p>All our vehicles and drivers are fully licensed and comprehensively insured for your peace of mind.</p>
+                <h3>Licensed &amp; insured</h3>
+                <p>Every vehicle and chauffeur is fully licensed and comprehensively insured.</p>
               </div>
               <div className="why-card">
-                <div className="why-icon">👨‍🏫</div>
-                <h3>Expert Guides</h3>
-                <p>Our professional guides are knowledgeable, friendly, and passionate about sharing Cape Town's best.</p>
+                <h3>Local mastery</h3>
+                <p>Guides who know Cape Town beyond the postcard stops.</p>
               </div>
               <div className="why-card">
-                <div className="why-icon">⏰</div>
-                <h3>Always On Time</h3>
-                <p>We understand the value of your time. Punctuality and reliability are at the heart of our service.</p>
+                <h3>On the minute</h3>
+                <p>Airport meets, hotel runs, and day tours that respect your schedule.</p>
               </div>
             </div>
           </div>
@@ -738,15 +664,6 @@ function Home() {
       </main>
 
       <SiteFooter />
-
-      {/* Back to Top Button */}
-      <button
-        className={`back-to-top ${showBackToTop ? "visible" : ""}`}
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        aria-label="Back to top"
-      >
-        ↑
-      </button>
     </>
   );
 }

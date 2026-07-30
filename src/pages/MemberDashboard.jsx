@@ -5,7 +5,6 @@ import { getMemberBookings, getMemberSubscriptions, getMemberInvoices } from '..
 import { membershipPlans } from '../data';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
-import BackToTop from '../components/BackToTop';
 import LiveMap from '../components/LiveMap';
 
 export default function MemberDashboard() {
@@ -142,8 +141,6 @@ export default function MemberDashboard() {
         <button type="button" className="btn btn-outline" style={{ marginTop: '2rem' }} onClick={() => signOut()}>
           Sign out
         </button>
-      </main>
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }

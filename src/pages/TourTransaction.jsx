@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
-import BackToTop from "../components/BackToTop";
 import { calculateTourPrice } from "../lib/api";
 
 function TourTransaction() {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [navOpen, setNavOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -216,25 +214,15 @@ function TourTransaction() {
             <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
           </Link>
 
-          <button
-            className="nav-toggle"
-            aria-label="Toggle navigation"
-            aria-expanded={navOpen}
-            onClick={() => setNavOpen((o) => !o)}
-          >
-            <span className="nav-toggle-bar" />
-            <span className="nav-toggle-bar" />
-          </button>
-
-          <nav className={`main-nav ${navOpen ? "open" : ""}`} aria-label="Primary">
+          <nav className="main-nav" aria-label="Primary">
             <ul>
               <li>
-                <Link className="link-button" to="/" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/">
                   Home
                 </Link>
               </li>
               <li>
-                <Link className="link-button" to="/tours" onClick={() => setNavOpen(false)}>
+                <Link className="link-button" to="/tours">
                   Tours
                 </Link>
               </li>
@@ -614,8 +602,6 @@ function TourTransaction() {
           </div>
         </section>
       </main>
-
-      <BackToTop />
     </div>
   );
 }

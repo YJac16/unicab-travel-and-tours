@@ -99,10 +99,10 @@ async function main() {
   const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').replace(/\/+$/, '');
   if (supabaseUrl) {
     try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/`, {
+      const res = await fetch(`${supabaseUrl}/rest/v1/tours?select=id&limit=1`, {
         headers: {
-          apikey: process.env.VITE_SUPABASE_ANON_KEY || '',
-          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_SECRET || ''}`,
+          apikey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '',
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_SECRET || process.env.VITE_SUPABASE_ANON_KEY || ''}`,
         },
       });
       if (res.ok || res.status === 200 || res.status === 404) {

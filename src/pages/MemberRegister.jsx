@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import BackToTop from '../components/BackToTop';
 import PasswordInput from '../components/PasswordInput';
 
 function MemberRegister() {
@@ -270,10 +269,7 @@ function MemberRegister() {
             </div>
           </div>
         </section>
-      </main>
-
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

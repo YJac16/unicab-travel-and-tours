@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import HubSwitcher from './HubSwitcher';
 
 /**
  * Compact Home + Sign out for hub headers (admin / driver / member).
@@ -16,6 +17,7 @@ export default function HubChromeActions({ showSignOut = true }) {
 
   return (
     <div className="hub-chrome-actions">
+      <HubSwitcher />
       <Link to="/" className="btn btn-outline btn-compact hub-chrome-btn">
         Home
       </Link>

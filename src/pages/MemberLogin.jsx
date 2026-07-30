@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-do
 import { login } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { fetchRoleAndGetRedirect, getRedirectPath } from '../lib/authRedirects';
-import BackToTop from '../components/BackToTop';
 import PasswordInput from '../components/PasswordInput';
 
 function MemberLogin() {
@@ -353,8 +352,6 @@ function MemberLogin() {
           </div>
         </section>
       </main>
-
-      <BackToTop />
     </div>
   );
 }

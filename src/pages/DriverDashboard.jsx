@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getDriverBookings, getDriverUnavailability, blockDriverDate, unblockDriverDate } from '../lib/api';
+import {
+  getDriverBookings,
+  getDriverUnavailability,
+  blockDriverDate,
+  unblockDriverDate,
+  getDriverReviews,
+  getDriverReviewStats,
+} from '../lib/api';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
-import BackToTop from '../components/BackToTop';
 
 function DriverDashboard() {
   const { user, driverProfile } = useAuth();
@@ -15,10 +21,12 @@ function DriverDashboard() {
   const [selectedDate, setSelectedDate] = useState('');
   const [blockReason, setBlockReason] = useState('');
   const [showBlockForm, setShowBlockForm] = useState(false);
+  const [ratingStats, setRatingStats] = useState({ average: 0, count: 0 });
+  const [recentReviews, setRecentReviews] = useState([]);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [driverProfile?.id, user?.id]);
 
   const loadData = async () => {
     setLoading(true);
@@ -34,9 +42,18 @@ function DriverDashboard() {
       if (unavailabilityData.data) {
         setBlockedDates(unavailabilityData.data);
       }
+
+      const driverKey = driverProfile?.id || user?.id;
+      if (driverKey) {
+        const [{ data: stats }, { data: reviews }] = await Promise.all([
+          getDriverReviewStats(driverKey),
+          getDriverReviews(driverKey),
+        ]);
+        if (stats) setRatingStats(stats);
+        if (reviews) setRecentReviews(reviews.slice(0, 3));
+      }
     } catch (error) {
       console.error('Error loading data:', error);
-      // If unauthorized, redirect to login
       if (error?.error?.message?.includes('Authentication') || error?.error?.message?.includes('401')) {
         navigate('/login');
       }
@@ -115,6 +132,29 @@ function DriverDashboard() {
           <div className="container">
             <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
               <h1 style={{ marginBottom: "2rem" }}>Driver Dashboard</h1>
+
+              <div className="performance-panel soft-panel" style={{ marginBottom: '2rem' }}>
+                <h2 style={{ marginTop: 0 }}>Guest rating</h2>
+                <p style={{ margin: 0, fontSize: '1.75rem', color: 'var(--accent-gold)' }}>
+                  {ratingStats.count > 0 ? ratingStats.average.toFixed(1) : '—'}
+                  <span style={{ fontSize: '1rem', color: 'var(--text-soft)' }}> / 5</span>
+                </p>
+                <p style={{ color: 'var(--text-soft)' }}>
+                  {ratingStats.count > 0
+                    ? `${ratingStats.count} approved review${ratingStats.count === 1 ? '' : 's'}. Aim to hold 4.5+.`
+                    : 'No approved reviews yet — every completed trip is a chance to earn five stars.'}
+                </p>
+                {recentReviews.length > 0 && (
+                  <ul style={{ margin: '0.75rem 0 0', paddingLeft: '1.1rem', color: 'var(--text-soft)' }}>
+                    {recentReviews.map((r) => (
+                      <li key={r.id} style={{ marginBottom: '0.35rem' }}>
+                        <strong style={{ color: 'var(--text-main)' }}>{r.rating}/5</strong>
+                        {r.comment ? ` — ${r.comment.slice(0, 120)}` : ''}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
 
               {/* Upcoming Bookings */}
               <div style={{ 
@@ -334,10 +374,7 @@ function DriverDashboard() {
             </div>
           </div>
         </section>
-      </main>
-
-      <BackToTop />
-    </div>
+      </main>    </div>
   );
 }
 

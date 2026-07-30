@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getAdminLeads, updateAdminLead, getAdminStats, refundAdminBooking } from '../lib/api';
 import AdminNav from '../components/AdminNav';
-import BackToTop from '../components/BackToTop';
 
 export default function AdminLeads() {
   const [leads, setLeads] = useState([]);
@@ -126,7 +125,6 @@ export default function AdminLeads() {
           <Link to="/admin/dashboard">← Admin dashboard</Link>
         </p>
       </main>
-      <BackToTop />
     </div>
   );
 }
