@@ -21,7 +21,7 @@ function scrollToId(id) {
   el.scrollIntoView({ behavior: prefersReduced ? "auto" : "smooth", block: "start" });
 }
 
-/** Floating menu + WhatsApp + call CTAs on public pages */
+/** Solo floating menu (mobile) with contact links inside the sheet */
 export default function ContactFab() {
   const [menuOpen, setMenuOpen] = useState(false);
   const barRef = useRef(null);
@@ -93,7 +93,7 @@ export default function ContactFab() {
         tabIndex={menuOpen ? 0 : -1}
         onClick={closeMenu}
       />
-      <div className="contact-cta-bar" aria-label="Contact shortcuts" ref={barRef}>
+      <div className="contact-cta-bar" aria-label="Site menu" ref={barRef}>
         <div className="contact-fab-sheet-wrap">
           {menuOpen ? (
             <nav
@@ -102,6 +102,7 @@ export default function ContactFab() {
               className="contact-fab-sheet open"
               aria-label="Primary"
             >
+              <p className="contact-fab-sheet-eyebrow">Menu</p>
               <ul>
                 {NAV_LINKS.map((item) => (
                   <li key={item.label}>
@@ -120,12 +121,34 @@ export default function ContactFab() {
                     )}
                   </li>
                 ))}
-                <li>
+                <li className="contact-fab-sheet-cta">
                   <Link className="btn btn-primary" to="/book" onClick={closeMenu}>
                     Book Now
                   </Link>
                 </li>
               </ul>
+              <div className="contact-fab-reach">
+                <p className="contact-fab-reach-label">Reach us</p>
+                <div className="contact-fab-reach-actions">
+                  <a
+                    href={`tel:${siteConfig.phone.tel}`}
+                    aria-label={`Call ${siteConfig.phone.display}`}
+                  >
+                    Call
+                  </a>
+                  <span className="contact-fab-reach-sep" aria-hidden="true">
+                    ·
+                  </span>
+                  <a
+                    href={siteConfig.whatsapp.linkWithMessage}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="WhatsApp UNICAB"
+                  >
+                    WhatsApp
+                  </a>
+                </div>
+              </div>
             </nav>
           ) : null}
           <button
@@ -141,22 +164,6 @@ export default function ContactFab() {
             <span className="contact-cta-menu-bar" />
           </button>
         </div>
-        <a
-          className="contact-cta-tel"
-          href={`tel:${siteConfig.phone.tel}`}
-          aria-label={`Call ${siteConfig.phone.display}`}
-        >
-          Call
-        </a>
-        <a
-          className="contact-cta-wa"
-          href={siteConfig.whatsapp.linkWithMessage}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="WhatsApp UNICAB"
-        >
-          WhatsApp
-        </a>
       </div>
     </>
   );

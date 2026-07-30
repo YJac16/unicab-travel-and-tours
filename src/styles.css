@@ -1504,81 +1504,8 @@ textarea:focus-visible {
   .card-title {
     font-size: 1.1rem;
   }
-
-  .whatsapp-button {
-    bottom: 80px;
-    right: 16px;
-    width: 52px;
-    height: 52px;
-  }
 }
 
-/* WhatsApp Chat Button */
-.whatsapp-button {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 60px;
-  height: 60px;
-  background: #25d366;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 20px rgba(37, 211, 102, 0.4), 0 8px 30px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-  transition: all var(--transition-med);
-  text-decoration: none;
-  color: #ffffff;
-}
-
-.whatsapp-button:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 25px rgba(37, 211, 102, 0.5), 0 12px 40px rgba(0, 0, 0, 0.4);
-}
-
-.whatsapp-button:active {
-  transform: scale(0.95);
-}
-
-.whatsapp-icon {
-  width: 32px;
-  height: 32px;
-  color: #ffffff;
-}
-
-.whatsapp-tooltip {
-  position: absolute;
-  right: 70px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(0, 0, 0, 0.9);
-  color: var(--text-main);
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition-fast);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.whatsapp-button:hover .whatsapp-tooltip {
-  opacity: 1;
-}
-
-.whatsapp-tooltip::after {
-  content: "";
-  position: absolute;
-  right: -6px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 6px solid transparent;
-  border-left-color: rgba(0, 0, 0, 0.9);
-}
-
-/* Why UNICAB Section */
 .safety-emphasis {
   background: linear-gradient(135deg, var(--accent-gold-light) 0%, rgba(201, 169, 97, 0.08) 100%);
   border-top: 3px solid var(--accent-gold);
@@ -1677,22 +1604,6 @@ textarea:focus-visible {
 }
 
 @media (max-width: 768px) {
-  .whatsapp-button {
-    width: 56px;
-    height: 56px;
-    bottom: 20px;
-    right: 20px;
-  }
-
-  .whatsapp-icon {
-    width: 28px;
-    height: 28px;
-  }
-
-  .whatsapp-tooltip {
-    display: none;
-  }
-
   .why-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
@@ -1909,52 +1820,37 @@ textarea:focus-visible {
 
 .contact-cta-bar {
   position: fixed;
-  right: 1rem;
-  bottom: 1rem;
+  right: 1.1rem;
+  bottom: 1.1rem;
   z-index: 40;
-  display: flex;
+  display: none;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.contact-cta-bar a,
-.contact-cta-bar .contact-cta-menu {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 3rem;
-  min-height: 3rem;
-  padding: 0.65rem 0.9rem;
-  border-radius: 999px;
-  text-decoration: none;
-  font-size: 0.8rem;
-  font-weight: 600;
-  box-shadow: var(--shadow-medium);
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.contact-cta-wa {
-  background: #25d366;
-  color: #fff;
-}
-
-.contact-cta-tel {
-  background: var(--bg-elevated);
-  color: var(--text-main);
-  border: 1px solid var(--border-soft);
 }
 
 .contact-cta-menu {
-  display: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border-radius: 50%;
   background: var(--bg-elevated);
   color: var(--text-main);
-  border: 1px solid var(--border-soft);
+  border: 1px solid var(--border-gold);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  font-family: inherit;
   flex-direction: column;
   gap: 0.28rem;
-  padding: 0.75rem 0.85rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.contact-cta-menu:hover {
+  border-color: var(--accent-gold);
+  box-shadow: var(--shadow-gold);
 }
 
 .contact-cta-menu-bar {
@@ -1968,7 +1864,7 @@ textarea:focus-visible {
 }
 
 .contact-cta-menu[aria-expanded="true"] .contact-cta-menu-bar:nth-child(1) {
-  transform: translateY(3.5px) rotate(45deg);
+  transform: translateY(4.5px) rotate(45deg);
 }
 
 .contact-cta-menu[aria-expanded="true"] .contact-cta-menu-bar:nth-child(2) {
@@ -1976,7 +1872,7 @@ textarea:focus-visible {
 }
 
 .contact-cta-menu[aria-expanded="true"] .contact-cta-menu-bar:nth-child(3) {
-  transform: translateY(-3.5px) rotate(-45deg);
+  transform: translateY(-4.5px) rotate(-45deg);
 }
 
 .contact-fab-sheet-backdrop {
@@ -1984,7 +1880,7 @@ textarea:focus-visible {
   position: fixed;
   inset: 0;
   z-index: 39;
-  background: rgba(12, 14, 18, 0.35);
+  background: rgba(12, 14, 18, 0.42);
   border: none;
   padding: 0;
   cursor: pointer;
@@ -2004,21 +1900,22 @@ textarea:focus-visible {
 .contact-fab-sheet {
   position: absolute;
   right: 0;
-  bottom: calc(100% + 0.55rem);
-  width: min(18rem, calc(100vw - 2rem));
-  max-height: min(70vh, 28rem);
+  bottom: calc(100% + 0.65rem);
+  width: min(19rem, calc(100vw - 2rem));
+  max-height: min(72vh, 32rem);
   overflow-y: auto;
   background: var(--bg-elevated);
   color: var(--text-main);
   border: 1px solid var(--border-soft);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-luxury);
   opacity: 0;
   pointer-events: none;
-  transform: translateY(12px) scale(0.96);
+  transform: translateY(10px) scale(0.97);
   transform-origin: bottom right;
   transition: transform var(--transition-med), opacity var(--transition-med);
   z-index: 41;
+  padding: 0.35rem 0 0.15rem;
 }
 
 .contact-fab-sheet.open {
@@ -2027,60 +1924,115 @@ textarea:focus-visible {
   transform: translateY(0) scale(1);
 }
 
+.contact-fab-sheet-eyebrow {
+  margin: 0.85rem 1.15rem 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
 .contact-fab-sheet ul {
   list-style: none;
   margin: 0;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0 0.5rem;
 }
 
 .contact-fab-sheet li {
   border-bottom: 1px solid var(--border-soft);
 }
 
-.contact-fab-sheet li:last-child {
+.contact-fab-sheet li:last-of-type,
+.contact-fab-sheet li.contact-fab-sheet-cta {
   border-bottom: none;
-  margin-top: 0.25rem;
-  padding-top: 0.25rem;
-  border-top: 1px solid var(--border-soft);
 }
 
-.contact-fab-sheet a,
+.contact-fab-sheet a.link-button,
 .contact-fab-sheet .link-button {
   display: block;
   width: 100%;
-  padding: 0.8rem 1rem;
+  padding: 0.78rem 1.15rem;
   text-align: left;
   text-decoration: none;
-  color: var(--text-main);
+  color: var(--text-soft);
   background: transparent;
   border: none;
   font: inherit;
-  font-size: 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   cursor: pointer;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.contact-fab-sheet a:hover,
+.contact-fab-sheet a.link-button:hover,
 .contact-fab-sheet .link-button:hover {
   color: var(--accent-gold);
-  background: var(--accent-gold-light);
+  background: transparent;
+}
+
+.contact-fab-sheet-cta {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
 }
 
 .contact-fab-sheet .btn {
   display: block;
-  width: calc(100% - 1.5rem);
-  margin: 0.35rem 0.75rem 0.75rem;
+  width: calc(100% - 2.3rem);
+  margin: 0.45rem 1.15rem 0.85rem;
   text-align: center;
   text-decoration: none;
 }
 
+.contact-fab-reach {
+  margin: 0.25rem 1.15rem 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.contact-fab-reach-label {
+  margin: 0 0 0.45rem;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.contact-fab-reach-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.contact-fab-reach-actions a {
+  color: var(--text-soft);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color var(--transition-fast);
+}
+
+.contact-fab-reach-actions a:hover {
+  color: var(--accent-gold);
+}
+
+.contact-fab-reach-sep {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
 @media (max-width: 768px) {
-  .contact-cta-menu {
-    display: inline-flex;
+  .contact-cta-bar {
+    display: flex;
   }
 }
 
 @media (min-width: 769px) {
-  .contact-fab-sheet-wrap,
+  .contact-cta-bar,
   .contact-fab-sheet-backdrop {
     display: none !important;
   }
