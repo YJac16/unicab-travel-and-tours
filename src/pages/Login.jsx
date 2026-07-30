@@ -91,12 +91,20 @@ function Login() {
       ]);
 
     try {
-      // Try Supabase auth first
-      const { data: supabaseData, error: supabaseError } = await withTimeout(
-        supabaseSignIn(email, password),
-        20000,
-        'Sign in'
-      );
+      // Try Supabase auth first (short timeout — fall back to API if hung)
+      let supabaseData = null;
+      let supabaseError = null;
+      try {
+        const result = await withTimeout(
+          supabaseSignIn(email, password),
+          12000,
+          'Sign in'
+        );
+        supabaseData = result?.data || null;
+        supabaseError = result?.error || null;
+      } catch (timeoutErr) {
+        supabaseError = { message: timeoutErr.message || 'Sign in timed out' };
+      }
       
       if (!supabaseError && supabaseData?.user) {
         const redirectParam = searchParams.get('redirect');
@@ -129,6 +137,19 @@ function Login() {
         }
       } else if (data && data.token) {
         localStorage.setItem('auth_token', data.token);
+
+        // Restore Supabase client session when API returns tokens
+        if (data.refresh_token) {
+          try {
+            const { supabase } = await import('../lib/supabase');
+            await supabase.auth.setSession({
+              access_token: data.token,
+              refresh_token: data.refresh_token,
+            });
+          } catch (sessionErr) {
+            console.warn('Could not hydrate Supabase session from API login:', sessionErr);
+          }
+        }
         
         const role = String(data.user?.role || '').toLowerCase();
         if (role === 'admin') {

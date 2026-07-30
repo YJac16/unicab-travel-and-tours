@@ -69,6 +69,8 @@ router.post('/login', async (req, res) => {
           success: true,
           data: {
             token: authData.session.access_token,
+            refresh_token: authData.session.refresh_token,
+            expires_at: authData.session.expires_at,
             user: {
               id: authData.user.id,
               email: authData.user.email,
