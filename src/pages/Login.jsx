@@ -82,9 +82,21 @@ function Login() {
     setError('');
     setLoading(true);
 
+    const withTimeout = (promise, ms, label) =>
+      Promise.race([
+        promise,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`${label} timed out`)), ms)
+        ),
+      ]);
+
     try {
       // Try Supabase auth first
-      const { data: supabaseData, error: supabaseError } = await supabaseSignIn(email, password);
+      const { data: supabaseData, error: supabaseError } = await withTimeout(
+        supabaseSignIn(email, password),
+        20000,
+        'Sign in'
+      );
       
       if (!supabaseError && supabaseData?.user) {
         const redirectParam = searchParams.get('redirect');
@@ -92,43 +104,47 @@ function Login() {
           navigate(redirectParam, { replace: true });
           return;
         }
-        const redirectPath = await fetchRoleAndGetRedirect(supabaseData.user.id);
+        const redirectPath = await withTimeout(
+          fetchRoleAndGetRedirect(supabaseData.user.id),
+          10000,
+          'Role lookup'
+        );
         navigate(redirectPath, { replace: true });
         return;
       }
 
-      // Fallback to legacy JWT auth
-      const { data, error: loginError } = await login(email, password);
+      // Fallback to API auth (Supabase session token)
+      const { data, error: loginError } = await withTimeout(
+        login(email, password),
+        20000,
+        'API login'
+      );
 
       if (loginError) {
-        // Handle different error formats
-        const errorMessage = loginError.message || loginError.error || loginError.details || 'Failed to sign in';
+        const errorMessage = loginError.message || loginError.error || loginError.details || supabaseError?.message || 'Failed to sign in';
         setError(errorMessage);
         
-        // If it's a network error, provide more helpful message
         if (errorMessage.includes('Network error') || errorMessage.includes('Could not connect')) {
           setError('Cannot connect to server. Please make sure the backend server is running on port 3000.');
         }
       } else if (data && data.token) {
-        // Store token
         localStorage.setItem('auth_token', data.token);
         
-        // Redirect based on role
-        const role = data.user?.role;
-        if (role === 'ADMIN') {
+        const role = String(data.user?.role || '').toLowerCase();
+        if (role === 'admin') {
           navigate('/admin/dashboard', { replace: true });
-        } else if (role === 'DRIVER') {
+        } else if (role === 'driver') {
           navigate('/driver/dashboard', { replace: true });
-        } else if (role === 'MEMBER') {
+        } else if (role === 'member' || role === 'customer') {
           navigate('/member/dashboard', { replace: true });
         } else {
           navigate('/', { replace: true });
         }
       } else {
-        setError('Invalid response from server. Please try again.');
+        setError(supabaseError?.message || 'Invalid response from server. Please try again.');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError(err?.message || 'An error occurred. Please try again.');
       console.error('Login error:', err);
     } finally {
       setLoading(false);

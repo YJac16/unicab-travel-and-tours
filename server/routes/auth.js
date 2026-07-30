@@ -5,66 +5,121 @@
 const express = require('express');
 const router = express.Router();
 
-// Use bcryptjs (pure JS, no compilation needed) - already installed
 const bcrypt = require('bcryptjs');
+const { createClient } = require('@supabase/supabase-js');
 const { generateToken, requireAuth, requireAdmin } = require('./middleware/auth');
-
-// Database connection
+const { getSupabaseAdmin, isSupabaseConfigured } = require('../../lib/supabaseAdmin');
 const db = require('../../lib/db');
 
-// POST /api/auth/login
+function getAuthClient() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    null;
+  if (!url || !key) return null;
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+// POST /api/auth/login — Supabase Auth first, legacy users-table fallback
 router.post('/login', async (req, res) => {
   try {
     console.log('Login request received:', { email: req.body?.email ? 'provided' : 'missing' });
-    
+
     const { email, password } = req.body || {};
 
     if (!email || !password) {
-      console.log('Login validation failed: missing email or password');
       return res.status(400).json({
         success: false,
-        error: 'Email and password are required'
+        error: 'Email and password are required',
       });
     }
 
-    // Check if database is configured
+    // Canonical path: Supabase Auth (+ profiles.role)
+    if (isSupabaseConfigured()) {
+      const authClient = getAuthClient();
+      if (authClient) {
+        const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
+          email: String(email).trim().toLowerCase(),
+          password,
+        });
+
+        if (authError || !authData?.user || !authData?.session?.access_token) {
+          return res.status(401).json({
+            success: false,
+            error: 'Invalid credentials',
+            message: authError?.message || 'Invalid email or password',
+          });
+        }
+
+        const supabaseAdmin = getSupabaseAdmin();
+        const { data: profile } = await supabaseAdmin
+          .from('profiles')
+          .select('role, full_name, is_owner')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        const role = String(profile?.role || 'customer').toLowerCase();
+        console.log('Login: Supabase success for', email, 'role:', role);
+
+        return res.json({
+          success: true,
+          data: {
+            token: authData.session.access_token,
+            user: {
+              id: authData.user.id,
+              email: authData.user.email,
+              name: profile?.full_name || authData.user.email,
+              role,
+              isOwner: Boolean(profile?.is_owner),
+            },
+          },
+        });
+      }
+    }
+
+    // Legacy fallback (optional public.users table with password_hash)
     if (!db.isConfigured()) {
-      console.log('Login: Database not configured');
       return res.status(501).json({
         success: false,
         error: 'Authentication not yet configured',
-        message: 'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables to enable authentication'
+        message:
+          'Set SUPABASE_URL and SUPABASE_ANON_KEY (or VITE_SUPABASE_ANON_KEY) on the server',
       });
     }
 
-    // Query database for user
-    const user = await db.getUserByEmail(email);
-
-    if (!user || user.rows.length === 0) {
-      console.log('Login: User not found for email:', email);
+    let user;
+    try {
+      user = await db.getUserByEmail(email);
+    } catch (dbError) {
+      // Missing legacy table (PGRST205) — do not 500; credentials path is Supabase
+      console.warn('Legacy users lookup failed:', dbError.message || dbError.code || dbError);
       return res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
+      });
+    }
+
+    if (!user || user.rows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid credentials',
       });
     }
 
     const userData = user.rows[0];
-
-    // Verify password
     const passwordMatch = await bcrypt.compare(password, userData.password_hash);
     if (!passwordMatch) {
-      console.log('Login: Password mismatch for email:', email);
       return res.status(401).json({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
       });
     }
 
-    // Generate token
     const token = generateToken(userData);
-
-    console.log('Login: Success for email:', email, 'role:', userData.role);
-
     return res.json({
       success: true,
       data: {
@@ -74,19 +129,17 @@ router.post('/login', async (req, res) => {
           email: userData.email,
           name: userData.name,
           role: userData.role,
-          guideId: userData.guide_id
-        }
-      }
+          guideId: userData.guide_id,
+        },
+      },
     });
   } catch (error) {
     console.error('Login error:', error);
-    // Ensure we always send a JSON response
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
         error: 'Login failed',
         message: error.message || 'An unexpected error occurred',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }

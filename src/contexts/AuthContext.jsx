@@ -204,8 +204,11 @@ export const AuthProvider = ({ children }) => {
 
       if (data?.user) {
         setUser(data.user);
-        await fetchUserRole(data.user.id);
-        await fetchDriverProfile(data.user.id);
+        // Don't block sign-in forever on role/profile lookups
+        await Promise.race([
+          Promise.all([fetchUserRole(data.user.id), fetchDriverProfile(data.user.id)]),
+          new Promise((resolve) => setTimeout(resolve, 8000)),
+        ]);
       }
 
       return { data, error: null };
