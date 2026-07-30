@@ -4,9 +4,14 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-function loadRouter(relativePath, name) {
+/**
+ * Load routers with static require paths so Vercel NFT can trace deps
+ * (bcryptjs, jsonwebtoken, etc.). Keep try/catch so one broken router
+ * does not take down the whole API.
+ */
+function loadRouter(name, requireFn) {
   try {
-    return require(relativePath);
+    return requireFn();
   } catch (error) {
     console.error(`Failed to load ${name} router:`, error.message);
     const router = express.Router();
@@ -96,16 +101,15 @@ function createApp({ serveStatic = false } = {}) {
     next(error);
   });
 
-  const authRouter = loadRouter('./routes/auth', 'Auth');
-  const toursRouter = loadRouter('./routes/tours', 'Tours');
-  const guidesRouter = loadRouter('./routes/guides', 'Guides');
-  const bookingsRouter = loadRouter('./routes/bookings', 'Bookings');
-  const paymentsRouter = loadRouter('./routes/payments', 'Payments');
-  const driverRouter = loadRouter('./routes/driver', 'Driver');
-  const adminRouter = loadRouter('./routes/admin', 'Admin');
-  const memberRouter = loadRouter('./routes/member', 'Member');
-
-  const packagesRouter = loadRouter('./routes/packages', 'Packages');
+  const authRouter = loadRouter('Auth', () => require('./routes/auth'));
+  const toursRouter = loadRouter('Tours', () => require('./routes/tours'));
+  const guidesRouter = loadRouter('Guides', () => require('./routes/guides'));
+  const bookingsRouter = loadRouter('Bookings', () => require('./routes/bookings'));
+  const paymentsRouter = loadRouter('Payments', () => require('./routes/payments'));
+  const driverRouter = loadRouter('Driver', () => require('./routes/driver'));
+  const adminRouter = loadRouter('Admin', () => require('./routes/admin'));
+  const memberRouter = loadRouter('Member', () => require('./routes/member'));
+  const packagesRouter = loadRouter('Packages', () => require('./routes/packages'));
 
   app.get('/api', (req, res) => {
     const dbStatus =
