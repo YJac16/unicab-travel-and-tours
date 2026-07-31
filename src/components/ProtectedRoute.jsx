@@ -32,7 +32,9 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
     const roleMatches =
       isOwner ||
       (normalizedRequired === 'member'
-        ? normalizedUserRole === 'member' || normalizedUserRole === 'customer'
+        ? normalizedUserRole === 'member' ||
+          normalizedUserRole === 'customer' ||
+          normalizedUserRole === 'client'
         : normalizedUserRole === normalizedRequired);
 
     if (!roleMatches) {
@@ -42,7 +44,11 @@ export const ProtectedRoute = ({ children, requiredRole = null }) => {
       if (normalizedUserRole === 'driver') {
         return <Navigate to="/driver/dashboard" replace />;
       }
-      if (normalizedUserRole === 'member' || normalizedUserRole === 'customer') {
+      if (
+        normalizedUserRole === 'member' ||
+        normalizedUserRole === 'customer' ||
+        normalizedUserRole === 'client'
+      ) {
         return <Navigate to="/member/dashboard" replace />;
       }
       return <Navigate to="/" replace />;

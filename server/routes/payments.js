@@ -37,9 +37,38 @@ const getBaseUrl = (req) => {
 const getYocoPublicKey = () =>
   process.env.YOCO_PUBLIC_KEY || process.env.YOCO_LIVE_PUBLIC_KEY || null;
 
+function pickYocoCheckoutId(...candidates) {
+  for (const value of candidates) {
+    const id = String(value || '').trim();
+    if (id.startsWith('ch_')) return id;
+  }
+  return null;
+}
+
+async function resolveSubscriptionCheckoutId({ userId, tier, checkoutId }) {
+  if (checkoutId) return checkoutId;
+  if (!userId || !tier) return null;
+
+  const supabaseAdmin = getSupabaseAdmin();
+  const { data } = await supabaseAdmin
+    .from('subscriptions')
+    .select('yoco_checkout_id')
+    .eq('user_id', userId)
+    .eq('tier', String(tier).toLowerCase())
+    .eq('status', 'past_due')
+    .not('yoco_checkout_id', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return data?.yoco_checkout_id || null;
+}
+
 async function activateSubscription({ userId, tier, checkoutId, paymentRef }) {
   const supabaseAdmin = getSupabaseAdmin();
   const now = new Date();
+  const normalizedTier = String(tier).toLowerCase();
+  const checkoutKey = pickYocoCheckoutId(checkoutId, paymentRef);
 
   const { data: existingActive } = await supabaseAdmin
     .from('subscriptions')
@@ -53,7 +82,7 @@ async function activateSubscription({ userId, tier, checkoutId, paymentRef }) {
   let periodStart = now;
   if (
     existingActive?.current_period_end &&
-    existingActive.tier === tier &&
+    existingActive.tier === normalizedTier &&
     new Date(existingActive.current_period_end).getTime() > now.getTime()
   ) {
     periodStart = new Date(existingActive.current_period_end);
@@ -64,20 +93,83 @@ async function activateSubscription({ userId, tier, checkoutId, paymentRef }) {
 
   await supabaseAdmin
     .from('subscriptions')
-    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+    .update({ status: 'cancelled', updated_at: now.toISOString() })
     .eq('user_id', userId)
     .eq('status', 'active');
+
+  // Promote the matching unpaid checkout when we have a YOCO checkout id.
+  // Do not activate a different past_due row if a specific checkout was paid.
+  if (checkoutKey) {
+    const { data: promoted, error: promoteError } = await supabaseAdmin
+      .from('subscriptions')
+      .update({
+        status: 'active',
+        tier: normalizedTier,
+        current_period_end: periodEnd.toISOString(),
+        payment_reference: paymentRef || checkoutKey,
+        updated_at: now.toISOString(),
+      })
+      .eq('yoco_checkout_id', checkoutKey)
+      .eq('user_id', userId)
+      .select()
+      .maybeSingle();
+    if (promoteError) throw promoteError;
+    if (promoted) return promoted;
+
+    const { data, error } = await supabaseAdmin
+      .from('subscriptions')
+      .insert({
+        user_id: userId,
+        tier: normalizedTier,
+        status: 'active',
+        current_period_end: periodEnd.toISOString(),
+        yoco_checkout_id: checkoutKey,
+        payment_reference: paymentRef || checkoutKey,
+        updated_at: now.toISOString(),
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+
+  // No checkout id (admin/webhook metadata-only): activate latest past_due for user+tier
+  const { data: latestPending } = await supabaseAdmin
+    .from('subscriptions')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('tier', normalizedTier)
+    .eq('status', 'past_due')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (latestPending?.id) {
+    const { data: updated, error: updateError } = await supabaseAdmin
+      .from('subscriptions')
+      .update({
+        status: 'active',
+        current_period_end: periodEnd.toISOString(),
+        payment_reference: paymentRef || null,
+        updated_at: now.toISOString(),
+      })
+      .eq('id', latestPending.id)
+      .select()
+      .single();
+    if (updateError) throw updateError;
+    return updated;
+  }
 
   const { data, error } = await supabaseAdmin
     .from('subscriptions')
     .insert({
       user_id: userId,
-      tier,
+      tier: normalizedTier,
       status: 'active',
       current_period_end: periodEnd.toISOString(),
-      yoco_checkout_id: checkoutId || null,
-      payment_reference: paymentRef || checkoutId || null,
-      updated_at: new Date().toISOString(),
+      yoco_checkout_id: null,
+      payment_reference: paymentRef || null,
+      updated_at: now.toISOString(),
     })
     .select()
     .single();
@@ -330,12 +422,23 @@ router.post('/webhook', async (req, res) => {
     const bookingId = metadata.booking_id || metadata.bookingRef;
     const tier = metadata.tier;
     const userId = metadata.user_id;
+    // Prefer checkout ids (ch_…) — payment.succeeded payloads often expose payment id (p_…) as data.id
+    const checkoutId =
+      pickYocoCheckoutId(
+        data?.checkoutId,
+        data?.checkout_id,
+        metadata?.checkoutId,
+        metadata?.checkout_id,
+        data?.id,
+        payload?.checkoutId,
+        payload?.id
+      ) || null;
     const paymentRef =
-      data?.id ||
-      data?.checkoutId ||
+      checkoutId ||
       data?.paymentId ||
+      data?.payment_id ||
       payload?.payment_id ||
-      payload?.order_id ||
+      data?.id ||
       payload?.id ||
       null;
 
@@ -346,6 +449,7 @@ router.post('/webhook', async (req, res) => {
       bookingId,
       tier,
       userId,
+      checkoutId,
       paymentRef,
     });
 
@@ -377,44 +481,65 @@ router.post('/webhook', async (req, res) => {
       if (seen) {
         return res.json({ success: true, received: true, duplicate: true });
       }
+    }
+
+    const markWebhookProcessed = async () => {
+      if (!webhookId) return;
       await supabaseAdmin.from('yoco_webhook_events').upsert({
         webhook_id: webhookId,
         event_type: typeStr || null,
         processed_at: new Date().toISOString(),
       });
-    }
+    };
 
-    if (kind === 'subscription' && (userId || paymentRef)) {
+    if (kind === 'subscription' && (userId || checkoutId || paymentRef)) {
       if (isPaid && userId && tier) {
         try {
           await activateSubscription({
             userId,
             tier,
-            checkoutId: paymentRef,
+            checkoutId,
             paymentRef,
           });
         } catch (err) {
           console.error('Failed to activate subscription from webhook:', err);
-          if (paymentRef) {
-            const periodEnd = new Date();
-            periodEnd.setMonth(periodEnd.getMonth() + 1);
-            await supabaseAdmin
-              .from('subscriptions')
-              .update({
-                status: 'active',
-                payment_reference: paymentRef,
-                current_period_end: periodEnd.toISOString(),
-                updated_at: new Date().toISOString(),
-              })
-              .eq('yoco_checkout_id', paymentRef);
+          if (!checkoutId) {
+            return res.status(500).json({ success: false, error: 'Subscription activation failed' });
+          }
+          const periodEnd = new Date();
+          periodEnd.setMonth(periodEnd.getMonth() + 1);
+          const { data: fallbackRows, error: fallbackError } = await supabaseAdmin
+            .from('subscriptions')
+            .update({
+              status: 'active',
+              payment_reference: paymentRef || checkoutId,
+              current_period_end: periodEnd.toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('yoco_checkout_id', checkoutId)
+            .eq('user_id', userId)
+            .select('id');
+          if (fallbackError || !fallbackRows?.length) {
+            return res.status(500).json({
+              success: false,
+              error: 'Subscription activation failed',
+              message: fallbackError?.message || 'No matching checkout row',
+            });
           }
         }
-      } else if ((isFailed || isRefunded) && paymentRef) {
-        await supabaseAdmin
+      } else if ((isFailed || isRefunded) && (checkoutId || (userId && tier))) {
+        let failQuery = supabaseAdmin
           .from('subscriptions')
           .update({ status: 'cancelled', updated_at: new Date().toISOString() })
-          .eq('yoco_checkout_id', paymentRef);
+          .eq('status', 'past_due');
+        if (checkoutId) {
+          failQuery = failQuery.eq('yoco_checkout_id', checkoutId);
+        } else {
+          failQuery = failQuery.eq('user_id', userId).eq('tier', String(tier).toLowerCase());
+        }
+        await failQuery;
       }
+      await markWebhookProcessed();
       return res.json({ success: true, received: true });
     }
 
@@ -452,6 +577,7 @@ router.post('/webhook', async (req, res) => {
       }
     }
 
+    await markWebhookProcessed();
     return res.json({ success: true, received: true });
   } catch (error) {
     console.error('Error processing YOCO webhook:', error);
@@ -483,7 +609,14 @@ router.post('/confirm', async (req, res) => {
           error: 'user_id and tier are required for membership confirm',
         });
       }
-      if (!checkoutId) {
+
+      const resolvedCheckoutId = await resolveSubscriptionCheckoutId({
+        userId: memberUserId,
+        tier,
+        checkoutId,
+      });
+
+      if (!resolvedCheckoutId) {
         return res.status(400).json({
           success: false,
           error: 'checkoutId is required — payment must be verified with YOCO',
@@ -492,7 +625,7 @@ router.post('/confirm', async (req, res) => {
 
       let checkout;
       try {
-        checkout = await getCheckout(checkoutId);
+        checkout = await getCheckout(resolvedCheckoutId);
       } catch (err) {
         return res.status(402).json({
           success: false,
@@ -511,8 +644,8 @@ router.post('/confirm', async (req, res) => {
       const data = await activateSubscription({
         userId: memberUserId,
         tier: String(tier).toLowerCase(),
-        checkoutId,
-        paymentRef: checkoutId,
+        checkoutId: resolvedCheckoutId,
+        paymentRef: resolvedCheckoutId,
       });
 
       return res.json({ success: true, data });

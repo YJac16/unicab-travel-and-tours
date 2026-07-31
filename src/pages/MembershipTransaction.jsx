@@ -48,6 +48,22 @@ function MembershipTransaction() {
       return;
     }
 
+    if (data.checkoutId) {
+      try {
+        sessionStorage.setItem(
+          "unicab_membership_checkout",
+          JSON.stringify({
+            checkoutId: data.checkoutId,
+            tier: plan.id,
+            userId: user.id,
+            createdAt: Date.now(),
+          })
+        );
+      } catch {
+        /* ignore quota / private mode */
+      }
+    }
+
     window.location.href = data.redirectUrl;
   };
 

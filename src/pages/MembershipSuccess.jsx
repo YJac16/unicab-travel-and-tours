@@ -4,6 +4,25 @@ import { membershipPlans } from "../data";
 import { confirmYocoPayment } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 
+function readStoredCheckout(tier, userId) {
+  try {
+    const raw = sessionStorage.getItem("unicab_membership_checkout");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.checkoutId) return null;
+    if (tier && parsed.tier && parsed.tier !== tier) return null;
+    if (userId && parsed.userId && parsed.userId !== userId) return null;
+    // Drop stale entries older than 2 hours
+    if (parsed.createdAt && Date.now() - parsed.createdAt > 2 * 60 * 60 * 1000) {
+      sessionStorage.removeItem("unicab_membership_checkout");
+      return null;
+    }
+    return parsed.checkoutId;
+  } catch {
+    return null;
+  }
+}
+
 function MembershipSuccess() {
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -33,11 +52,14 @@ function MembershipSuccess() {
         return;
       }
 
+      const checkoutId =
+        searchParams.get("checkoutId") || readStoredCheckout(tier, user.id) || undefined;
+
       const { data, error } = await confirmYocoPayment(null, {
         kind: "subscription",
         tier,
         userId: user.id,
-        checkoutId: searchParams.get("checkoutId") || undefined,
+        checkoutId,
       });
 
       if (cancelled) return;
@@ -48,17 +70,23 @@ function MembershipSuccess() {
           planId: plan?.id,
           planName: plan?.name || tier,
           amount: plan?.price,
-          id: searchParams.get("checkoutId") || "—",
+          id: checkoutId || "—",
           error: error.message,
         });
         return;
+      }
+
+      try {
+        sessionStorage.removeItem("unicab_membership_checkout");
+      } catch {
+        /* ignore */
       }
 
       setTransaction({
         planId: plan?.id || tier,
         planName: plan?.name || tier,
         amount: plan?.price,
-        id: data?.id || searchParams.get("checkoutId") || "active",
+        id: data?.id || checkoutId || "active",
         customer: { email: user.email },
       });
       setStatus("ready");

@@ -73,11 +73,13 @@ export const AuthProvider = ({ children }) => {
       }
 
       const role = data?.role?.toLowerCase() || 'customer';
+      const normalizedRole =
+        role === 'client' || role === 'member' ? 'customer' : role;
       const owner = Boolean(data?.is_owner);
-      setUserRole(role);
+      setUserRole(normalizedRole);
       setIsOwner(owner);
       if (owner && !readStoredViewRole()) {
-        setActiveViewRole(role === 'admin' ? 'admin' : role);
+        setActiveViewRole(normalizedRole === 'admin' ? 'admin' : normalizedRole);
       }
       if (!owner) {
         setActiveViewRoleState(null);
