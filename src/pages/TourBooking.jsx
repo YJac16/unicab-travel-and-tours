@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { tours as localTours, drivers as localDrivers } from "../data";
 import { getTour, getAvailableDrivers, calculateTourPrice, formatTourPrice } from "../lib/api";
+import DocumentTitle from "../components/DocumentTitle";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -173,7 +174,6 @@ function TourBooking() {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length > 0) {
-      console.log("Validation errors:", newErrors);
       // Scroll to first error
       const firstErrorField = Object.keys(newErrors)[0];
       setTimeout(() => {
@@ -198,7 +198,6 @@ function TourBooking() {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length > 0) {
-      console.log("Validation errors:", newErrors);
       // Scroll to first error
       const firstErrorField = Object.keys(newErrors)[0];
       setTimeout(() => {
@@ -236,7 +235,6 @@ function TourBooking() {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length > 0) {
-      console.log("Validation errors:", newErrors);
       // Scroll to first error
       const firstErrorField = Object.keys(newErrors)[0];
       setTimeout(() => {
@@ -291,6 +289,7 @@ function TourBooking() {
   if (loading || !tour) {
     return (
       <div style={{ padding: '4rem', textAlign: 'center' }}>
+        <DocumentTitle title="Book tour" description="Complete your UNICAB tour booking details." />
         <p>Loading...</p>
       </div>
     );
@@ -301,6 +300,10 @@ function TourBooking() {
 
   return (
     <div>
+      <DocumentTitle
+        title={`Book ${tour.name}`}
+        description={`Book ${tour.name} with UNICAB Travel & Tours.`}
+      />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

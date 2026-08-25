@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams, useLocation } from "react-router-dom";
 import { formatTourPrice } from "../lib/api";
+import DocumentTitle from "../components/DocumentTitle";
 
 /**
  * Booking confirmation — loads booking from custom Supabase system
@@ -61,6 +62,7 @@ function BookingConfirmation() {
 
   return (
     <div>
+      <DocumentTitle title="Booking confirmation" description="Your UNICAB booking confirmation and payment status." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

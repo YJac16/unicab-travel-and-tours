@@ -142,7 +142,7 @@ export default function ContactFab() {
                   <a
                     href={siteConfig.whatsapp.linkWithMessage}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     aria-label="WhatsApp UNICAB"
                   >
                     WhatsApp

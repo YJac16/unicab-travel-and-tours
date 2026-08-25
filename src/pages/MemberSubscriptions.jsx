@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getMemberSubscriptions,
-  createYocoPayment,
   cancelMemberSubscription,
 } from '../lib/api';
 import { membershipPlans } from '../data';
+import { siteConfig } from '../config';
 import ProfileDropdown from '../components/ProfileDropdown';
 import HubChromeActions from '../components/HubChromeActions';
 
@@ -14,12 +14,6 @@ const TIER_STYLES = {
   explorer: { border: '#5b8c5a', bg: '#f3faf4', badge: '#5b8c5a' },
   frequent: { border: '#c9a227', bg: '#fffaf0', badge: '#c9a227' },
   elite: { border: '#1a1a2e', bg: '#f4f1ea', badge: '#1a1a2e' },
-};
-
-const TIER_CENTS = {
-  explorer: 29900,
-  frequent: 89900,
-  elite: 250000,
 };
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -35,7 +29,6 @@ export default function MemberSubscriptions() {
   const [active, setActive] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -51,28 +44,6 @@ export default function MemberSubscriptions() {
   const endingSoon =
     active?.current_period_end &&
     new Date(active.current_period_end).getTime() - Date.now() <= SEVEN_DAYS_MS;
-
-  const activate = async (tier) => {
-    if (!user?.id) {
-      setMessage('Please sign in first');
-      return;
-    }
-    setBusy(true);
-    setMessage('');
-    const plan = membershipPlans.find((p) => p.id === tier);
-    const { data, error } = await createYocoPayment(TIER_CENTS[tier], null, {
-      kind: 'subscription',
-      tier,
-      userId: user.id,
-      description: `UNICAB ${plan?.name || tier} membership`,
-    });
-    setBusy(false);
-    if (error || !data?.redirectUrl) {
-      setMessage(error?.message || 'Could not start YOCO checkout');
-      return;
-    }
-    window.location.href = data.redirectUrl;
-  };
 
   const cancel = async () => {
     if (!active || !window.confirm('End your membership early? Benefits stop immediately.')) return;
@@ -100,29 +71,22 @@ export default function MemberSubscriptions() {
         <p className="checkout-eyebrow">Member hub</p>
         <h1 className="checkout-title">Membership</h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Plans are prepaid for one calendar month (not auto-renewing). When the period ends, pay again with YOCO to continue discounts at checkout.
+          Membership rates are confirmed with our team. Contact UNICAB to activate or renew a plan. Existing active memberships can still be managed here.
         </p>
         {active?.current_period_end && (
           <p style={{ color: 'var(--accent-gold)' }}>
             Active until {new Date(active.current_period_end).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })}
-            {endingSoon ? ' — renew soon to keep benefits.' : ''}
+            {endingSoon ? ' — contact us to renew.' : ''}
           </p>
         )}
         {endingSoon && active && (
           <div className="checkout-alert" style={{ maxWidth: 560 }}>
-            Your prepaid month ends soon.{' '}
-            <button
-              type="button"
-              className="btn btn-primary btn-compact"
-              disabled={busy}
-              onClick={() => activate(active.tier)}
-              style={{ marginLeft: '0.5rem' }}
-            >
-              Renew for next month
-            </button>
+            Your membership period ends soon.{' '}
+            <a className="btn btn-primary btn-compact" href={siteConfig.whatsapp.linkWithMessage} target="_blank" rel="noopener noreferrer">
+              WhatsApp to renew
+            </a>
           </div>
         )}
-        {message && <p style={{ color: 'var(--accent-gold)' }}>{message}</p>}
         {loading ? (
           <p>Loading…</p>
         ) : (
@@ -157,19 +121,17 @@ export default function MemberSubscriptions() {
                   </ul>
                   {isActive ? (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '1rem' }}>
-                      {endingSoon && (
-                        <button type="button" className="btn btn-primary" disabled={busy} onClick={() => activate(plan.id)}>
-                          Renew 1 month
-                        </button>
-                      )}
+                      <a className="btn btn-primary" href={siteConfig.whatsapp.linkWithMessage} target="_blank" rel="noopener noreferrer">
+                        Enquire to renew
+                      </a>
                       <button type="button" className="btn btn-outline" disabled={busy} onClick={cancel}>
                         End plan early
                       </button>
                     </div>
                   ) : (
-                    <button type="button" className="btn btn-primary" disabled={busy} onClick={() => activate(plan.id)} style={{ marginTop: '1rem' }}>
-                      {active ? 'Switch (pay 1 month)' : 'Pay 1 month with YOCO'}
-                    </button>
+                    <Link className="btn btn-primary" to="/#contact" style={{ marginTop: '1rem', display: 'inline-block' }}>
+                      Enquire
+                    </Link>
                   )}
                 </div>
               );

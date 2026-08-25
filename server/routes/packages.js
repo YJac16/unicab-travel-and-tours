@@ -8,14 +8,14 @@ const FALLBACK = [
     id: 'cape-highlights',
     name: 'Cape Highlights Day',
     summary: 'Table Mountain, Cape Point & Boulders in one curated private day.',
-    from_price_zar: 4500,
+    from_price_zar: null,
     bookable: true,
   },
   {
     id: 'wine-and-coast',
     name: 'Wine & Coast Escape',
     summary: 'Stellenbosch tasting circuit with scenic coastal transfer.',
-    from_price_zar: 3800,
+    from_price_zar: null,
     bookable: true,
   },
   {

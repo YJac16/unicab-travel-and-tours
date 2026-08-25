@@ -1,6 +1,14 @@
 import { supabase, isSupabaseConfigured, isSupabaseNetworkError } from './supabase';
 import { calculateTourPrice, getPriceForGroupSize, formatTourPrice } from './pricing';
-export { calculateTourPrice, getPriceForGroupSize, formatTourPrice, applyMembershipDiscount, getMembershipDiscountLabel } from './pricing';
+export {
+  calculateTourPrice,
+  getPriceForGroupSize,
+  formatTourPrice,
+  getPublicPriceLabel,
+  PUBLIC_PRICE_ON_REQUEST,
+  applyMembershipDiscount,
+  getMembershipDiscountLabel,
+} from './pricing';
 
 const isUuid = (value) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
@@ -79,7 +87,6 @@ const apiCall = async (endpoint, options = {}) => {
     // Debug logging in development
     if (typeof window !== 'undefined' && 
         (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-      console.log('[API] Calling:', url, 'from', window.location.origin);
     }
     
     const response = await fetch(url, {

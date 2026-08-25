@@ -2,15 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { drivers } from "../data";
 
-const formatStars = (rating) => {
-  const fullStars = Math.round(rating);
-  return "★".repeat(fullStars) + "☆".repeat(5 - fullStars);
-};
-
 function DriverSelection() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();  const [selectedDriver, setSelectedDriver] = useState(null);
+  const location = useLocation();
+  const [selectedDriver, setSelectedDriver] = useState(null);
   const [driverBookings, setDriverBookings] = useState({});
 
   const { pax, date, tour } = location.state || {};
@@ -18,8 +14,6 @@ function DriverSelection() {
   useEffect(() => {
     // Check if we have the required booking data
     if (!pax || !date || !tour) {
-      console.log("Missing booking data, redirecting to booking page:", { pax, date, tour });
-      // Try to preserve tour ID if available
       if (id) {
         navigate(`/tours/${id}/booking`, { replace: true });
       } else {
@@ -27,8 +21,6 @@ function DriverSelection() {
       }
       return;
     }
-    
-    console.log("Driver selection page loaded with:", { pax, date, tour: tour.name });
 
     // Load existing bookings from localStorage
     const bookings = JSON.parse(localStorage.getItem("unicab_bookings") || "[]");
@@ -190,14 +182,6 @@ function DriverSelection() {
                             <p className="card-meta" style={{ 
                               wordWrap: "break-word"
                             }}>{driver.experience}</p>
-                            {driver.rating && (
-                              <div className="rating" style={{ marginTop: "0.5rem" }}>
-                                <span className="stars" aria-hidden="true">
-                                  {formatStars(driver.rating)}
-                                </span>
-                                <span style={{ fontSize: "0.8rem", marginLeft: "0.5rem" }}>{driver.rating.toFixed(1)}</span>
-                              </div>
-                            )}
                           </div>
                         </div>
                         {driver.languages && driver.languages.length > 0 && (
@@ -294,7 +278,8 @@ function DriverSelection() {
             </div>
           </div>
         </section>
-      </main>    </div>
+      </main>
+    </div>
   );
 }
 

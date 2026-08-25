@@ -1,10 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import ProfileDropdown from '../components/ProfileDropdown';
+import DocumentTitle from '../components/DocumentTitle';
+import SiteFooter from '../components/SiteFooter';
 
 function CookiePolicy() {
   return (
     <div>
+      <DocumentTitle title="Cookie Policy" description="UNICAB Travel & Tours cookie policy." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

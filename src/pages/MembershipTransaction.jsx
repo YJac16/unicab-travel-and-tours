@@ -1,166 +1,69 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
+import React from "react";
+import { Link, useParams, Navigate } from "react-router-dom";
 import { membershipPlans } from "../data";
-import { createYocoPayment } from "../lib/api";
-import { useAuth } from "../contexts/AuthContext";
+import { siteConfig } from "../config";
+import DocumentTitle from "../components/DocumentTitle";
+import PublicHeader from "../components/PublicHeader";
+import SiteFooter from "../components/SiteFooter";
 
-const TIER_CENTS = {
-  explorer: 29900,
-  frequent: 89900,
-  elite: 250000,
-};
-
+/**
+ * Membership pricing is pending confirmation — do not charge hardcoded ZAR amounts.
+ * This route collects an enquiry instead of starting YOCO checkout.
+ */
 function MembershipTransaction() {
   const { planId } = useParams();
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { user, loading: authLoading } = useAuth();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
   const plan = membershipPlans.find((p) => p.id === planId);
-  const cancelled = searchParams.get("cancelled") === "1";
 
-  useEffect(() => {
-    if (!plan) navigate("/membership/comparison");
-  }, [plan, navigate]);
+  if (!plan) {
+    return <Navigate to="/membership" replace />;
+  }
 
-  if (!plan) return null;
-
-  const handlePay = async () => {
-    setError("");
-    if (!user?.id) {
-      navigate(`/login?redirect=${encodeURIComponent(`/membership/transaction/${plan.id}`)}`);
-      return;
-    }
-
-    setSubmitting(true);
-    const { data, error: payError } = await createYocoPayment(TIER_CENTS[plan.id], null, {
-      kind: "subscription",
-      tier: plan.id,
-      userId: user.id,
-      description: `UNICAB ${plan.name} membership`,
-    });
-    setSubmitting(false);
-
-    if (payError || !data?.redirectUrl) {
-      setError(payError?.message || "Could not start checkout. Please try again.");
-      return;
-    }
-
-    if (data.checkoutId) {
-      try {
-        sessionStorage.setItem(
-          "unicab_membership_checkout",
-          JSON.stringify({
-            checkoutId: data.checkoutId,
-            tier: plan.id,
-            userId: user.id,
-            createdAt: Date.now(),
-          })
-        );
-      } catch {
-        /* ignore quota / private mode */
-      }
-    }
-
-    window.location.href = data.redirectUrl;
-  };
+  const waUrl = `${siteConfig.whatsapp.link}?text=${encodeURIComponent(
+    `Hello, I'd like to enquire about the UNICAB ${plan.name} membership.`
+  )}`;
 
   return (
-    <div>
-      <header className="site-header">
-        <div className="container header-inner">
-          <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
-            <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
-          </Link>
-          <nav className="main-nav" aria-label="Primary">
-            <ul>
-              <li>
-                <Link className="link-button" to="/membership">
-                  Membership
-                </Link>
-              </li>
-              <li className="cta-nav">
-                <Link className="btn btn-primary btn-compact" to="/book">
-                  Book Now
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+    <>
+      <DocumentTitle
+        title={`${plan.name} membership`}
+        description={`Enquire about the UNICAB ${plan.name} membership option.`}
+      />
+      <PublicHeader />
 
       <main>
-        <section className="section checkout-page">
-          <div className="container">
-            <div className="checkout-shell">
-              <Link to="/membership/comparison" className="btn btn-outline checkout-back">
-                ← Compare plans
+        <section className="section page-section">
+          <div className="container section-inner" style={{ maxWidth: 640 }}>
+            <Link to="/membership/comparison" className="btn btn-outline btn-compact" style={{ marginBottom: "1.5rem" }}>
+              ← Compare options
+            </Link>
+            <p className="eyebrow">Membership enquiry</p>
+            <h1>{plan.name}</h1>
+            <p className="tour-price">{plan.price}</p>
+            <p className="section-intro">
+              Membership rates are confirmed directly with our team. Share your details and we will follow up with suitability and pricing.
+            </p>
+            <ul className="tour-highlights" style={{ marginBottom: "1.5rem" }}>
+              {plan.benefits.map((b) => (
+                <li key={b}>{b}</li>
+              ))}
+            </ul>
+            <div className="card-actions">
+              <Link className="btn btn-primary" to="/#contact">
+                Contact us
               </Link>
-
-              <p className="checkout-eyebrow">Membership checkout</p>
-              <h1 className="checkout-title">{plan.name}</h1>
-              <p className="checkout-price">{plan.price}</p>
-              <p className="checkout-lead">
-                Billed monthly as a prepaid month — not auto-renewing. Pay once with YOCO for the next calendar month of benefits.
-              </p>
-
-              {cancelled && (
-                <div className="checkout-alert">
-                  Checkout was cancelled. You can try again when ready.
-                </div>
-              )}
-
-              <div className="checkout-panel">
-                <h2>Included</h2>
-                <ul className="checkout-benefits">
-                  {plan.benefits.map((b) => (
-                    <li key={b}>{b}</li>
-                  ))}
-                </ul>
-
-                {authLoading ? (
-                  <p className="checkout-note">Checking sign-in…</p>
-                ) : !user ? (
-                  <div>
-                    <p className="checkout-note">
-                      Sign in to continue to secure YOCO checkout for this membership.
-                    </p>
-                    <Link
-                      className="btn btn-primary"
-                      to={`/login?redirect=${encodeURIComponent(`/membership/transaction/${plan.id}`)}`}
-                    >
-                      Sign in to pay
-                    </Link>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="checkout-note">
-                      Paying as <strong>{user.email}</strong>. You will be redirected to YOCO to complete payment.
-                    </p>
-                    {error && (
-                      <p className="checkout-field-error" role="alert">
-                        {error}
-                      </p>
-                    )}
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={handlePay}
-                      disabled={submitting}
-                      style={{ width: "100%", padding: "1rem" }}
-                    >
-                      {submitting ? "Starting checkout…" : `Pay ${plan.price} with YOCO`}
-                    </button>
-                  </div>
-                )}
-              </div>
+              <a className="btn btn-grey" href={waUrl} target="_blank" rel="noopener noreferrer">
+                WhatsApp
+              </a>
+              <Link className="btn btn-outline" to="/membership">
+                Back
+              </Link>
             </div>
           </div>
         </section>
       </main>
-    </div>
+
+      <SiteFooter />
+    </>
   );
 }
 

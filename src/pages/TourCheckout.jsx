@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { createBooking, calculateTourPrice, createYocoPayment, formatTourPrice, getMemberSubscriptions } from "../lib/api";
 import { applyMembershipDiscount, getMembershipDiscountLabel } from "../lib/pricing";
+import DocumentTitle from "../components/DocumentTitle";
 
 function TourCheckout() {
   const { id } = useParams();
@@ -167,6 +168,7 @@ function TourCheckout() {
 
   return (
     <div>
+      <DocumentTitle title="Checkout" description="Complete your UNICAB tour booking and payment." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

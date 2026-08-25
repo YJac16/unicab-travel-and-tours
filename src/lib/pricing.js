@@ -91,6 +91,15 @@ export const formatTourPrice = (amount) => {
   return `R${Number(amount).toLocaleString()}`;
 };
 
+/**
+ * Public marketing price label.
+ * Interim: do not surface conflicting From-prices until an authoritative
+ * price list is confirmed. Checkout still uses progressive pricing tiers.
+ */
+export const PUBLIC_PRICE_ON_REQUEST = 'Price on request';
+
+export const getPublicPriceLabel = (_tourOrPackage) => PUBLIC_PRICE_ON_REQUEST;
+
 /** Apply active membership tier discount to a per-person or total amount. */
 export const applyMembershipDiscount = (amount, tier) => {
   const base = toNumber(amount);
@@ -106,9 +115,9 @@ export const applyMembershipDiscount = (amount, tier) => {
 
 export const getMembershipDiscountLabel = (tier) => {
   const labels = {
-    explorer: '5–8% member rate',
-    frequent: '10–15% member rate',
-    elite: 'Elite contracted rate',
+    explorer: 'Member preferred rate',
+    frequent: 'Member preferred rate',
+    elite: 'Partner contracted rate',
   };
   return labels[String(tier || '').toLowerCase()] || null;
 };

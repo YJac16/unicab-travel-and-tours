@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SiteFooter from '../components/SiteFooter';
+import DocumentTitle from '../components/DocumentTitle';
 
 function TermsOfService() {
   return (
     <div>
+      <DocumentTitle title="Terms of Service" description="UNICAB Travel & Tours terms of service." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo">
@@ -45,7 +47,7 @@ function TermsOfService() {
           </p>
           <h2>Contact</h2>
           <p>
-            Questions about these Terms: <Link to="/">unicabtraveltours.com</Link> or email info@unicabtravel.co.za.
+            Questions about these Terms: <Link to="/">www.unicabtraveltours.com</Link> or email info@unicabtravel.co.za.
           </p>
           <p>
             See also our <Link to="/cancellation">Cancellation &amp; Refund Policy</Link> and{' '}

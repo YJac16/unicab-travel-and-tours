@@ -1,27 +1,48 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { tours, vehicles, drivers, membershipPlans } from "../data";
+import { tours, vehicles } from "../data";
 import { siteConfig } from "../config";
 import DocumentTitle from "../components/DocumentTitle";
-import ProfileDropdown from "../components/ProfileDropdown";
+import PublicHeader from "../components/PublicHeader";
 import SafeImage from "../components/SafeImage";
 import SiteFooter from "../components/SiteFooter";
-import { getPublicReviewsFeed } from "../lib/reviewsFeed";
+import { getPublicPriceLabel } from "../lib/pricing";
 
-const formatStars = (rating) => {
-  const fullStars = Math.round(rating);
-  return "★".repeat(fullStars) + "☆".repeat(5 - fullStars);
-};
+const SERVICES = [
+  {
+    title: "Private transfers",
+    text: "Point-to-point chauffeur transfers across Cape Town and the Western Cape."
+  },
+  {
+    title: "Airport transfers",
+    text: "Reliable meet-and-greet transfers to and from Cape Town International Airport."
+  },
+  {
+    title: "Staff & corporate transport",
+    text: "Scheduled staff transport and discreet corporate chauffeur cover for teams and visitors."
+  },
+  {
+    title: "Private tours",
+    text: "Guided day tours and multi-day itineraries paced around your interests and schedule."
+  }
+];
 
-const navItems = [
-  { id: "tours", label: "Tours", path: "/tours" },
-  { id: "packages", label: "Packages", path: "/packages" },
-  { id: "vehicles", label: "Vehicles", path: "/vehicles" },
-  { id: "drivers", label: "Drivers", path: "/drivers" },
-  { id: "reviews", label: "Reviews", path: "/reviews" },
-  { id: "membership", label: "Membership", path: "/membership" },
-  { id: "about", label: "About", path: null },
-  { id: "contact", label: "Contact", path: null }
+const HOW_IT_WORKS = [
+  {
+    step: "1",
+    title: "Tell us what you need",
+    text: "Share dates, passengers, pickup points, and whether you need a transfer or a private tour."
+  },
+  {
+    step: "2",
+    title: "We confirm the details",
+    text: "Our team confirms vehicle, timing, and itinerary so you know exactly what to expect."
+  },
+  {
+    step: "3",
+    title: "Travel with UNICAB",
+    text: "A professional driver meets you on time in a comfortable, well-maintained vehicle."
+  }
 ];
 
 function Home() {
@@ -29,25 +50,6 @@ function Home() {
   const [errors, setErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [reviews, setReviews] = useState([]);
-  const [reviewsLoading, setReviewsLoading] = useState(true);
-
-  const year = useMemo(() => new Date().getFullYear(), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setReviewsLoading(true);
-      const feed = await getPublicReviewsFeed(12);
-      if (!cancelled) {
-        setReviews(feed);
-        setReviewsLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id);
@@ -71,8 +73,8 @@ function Home() {
     if (!data.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
       nextErrors.email = "Please provide a valid email address.";
     }
-    if (!data.phone) {
-      nextErrors.phone = "Please provide a contact number.";
+    if (!data.phone || String(data.phone).trim().length < 7) {
+      nextErrors.phone = "Please provide a valid contact number.";
     }
     if (!data.message || data.message.trim().length < 10) {
       nextErrors.message = "Please provide a message (at least 10 characters).";
@@ -118,10 +120,10 @@ function Home() {
         e.target.reset();
       } else {
         setErrors({
-          submit: result.message || result.error || "Something went wrong. Please try again.",
+          submit: result.message || result.error || "Something went wrong. Please try again."
         });
       }
-    } catch (err) {
+    } catch {
       setErrors({ submit: "Network error. Please try again." });
     } finally {
       setSubmitting(false);
@@ -132,179 +134,90 @@ function Home() {
     <>
       <DocumentTitle
         title="Home"
-        description="Premium private transfers and guided tours across Cape Town and the Western Cape with UNICAB."
+        description="Private transfers, airport transfers, corporate transport, and private tours across Cape Town and the Western Cape with UNICAB."
       />
-      <header className="site-header">
-        <div className="container header-inner">
-          <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
-            <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
-          </Link>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <ProfileDropdown />
-            </div>
-          </div>
-
-          <nav className="main-nav" aria-label="Primary">
-            <ul>
-              {navItems.map((item) => (
-                <li key={item.id}>
-                  {item.path ? (
-                    <Link 
-                      className="link-button" 
-                      to={item.path}
-                      onClick={() => {
-                        window.scrollTo(0, 0);
-                      }}
-                    >
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <a className="link-button" href={`#${item.id}`} onClick={() => { scrollToSection(item.id); }}>
-                      {item.label}
-                    </a>
-                  )}
-                </li>
-              ))}
-              <li className="cta-nav">
-                <a className="btn btn-primary" href="/book">
-                  Book Now
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
+      <PublicHeader />
 
       <main>
         <section id="home" className="hero" aria-labelledby="hero-heading">
-          <div className="hero-bg-image"></div>
-          <div className="hero-overlay"></div>
+          <div className="hero-bg-image" />
+          <div className="hero-overlay" />
           <div className="container hero-inner hero-centered">
             <h1 id="hero-heading">
               <span className="hero-brand">UNICAB</span>
-              <span className="hero-title-main">Private luxury across the Cape</span>
+              <span className="hero-title-main">Private travel across the Cape</span>
             </h1>
             <p className="hero-subtitle">
-              Chauffeured transfers and guided tours with discretion, polish, and local mastery.
+              Private transfers, airport meets, corporate transport, and guided tours with professional drivers and comfortable vehicles.
             </p>
             <div className="hero-actions">
               <Link to="/book" className="btn btn-primary" onClick={() => window.scrollTo(0, 0)}>
                 Book Now
               </Link>
-              <button type="button" className="btn btn-grey" onClick={() => scrollToSection("tours")}>
-                Explore Tours
+              <button type="button" className="btn btn-grey" onClick={() => scrollToSection("contact")}>
+                Contact us
               </button>
             </div>
           </div>
         </section>
 
-        <section className="section why-unicab">
+        <section id="services" className="section services" aria-labelledby="services-heading">
+          <div className="container section-inner">
+            <header className="section-header center">
+              <p className="eyebrow">What we provide</p>
+              <h2 id="services-heading">Core services</h2>
+              <p className="section-intro max-720">
+                UNICAB supports leisure and corporate travellers across Cape Town and the Western Cape.
+              </p>
+            </header>
+            <div className="why-grid">
+              {SERVICES.map((service) => (
+                <div className="why-card" key={service.title}>
+                  <h3>{service.title}</h3>
+                  <p>{service.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section why-unicab" aria-labelledby="why-heading">
           <div className="container section-inner">
             <header className="section-header center">
               <p className="eyebrow">Why UNICAB</p>
-              <h2>Quiet luxury. Exact timing.</h2>
+              <h2 id="why-heading">Professional. Reliable. Local.</h2>
               <p className="section-intro max-720">
-                Licensed chauffeurs, fully insured fleet, and itineraries paced for travellers who expect more than a tour bus.
+                Clear communication, punctual pickups, and drivers who know Cape Town routes beyond the postcard stops.
               </p>
             </header>
             <div className="why-grid">
               <div className="why-card">
-                <h3>Licensed &amp; insured</h3>
-                <p>Every vehicle and chauffeur is fully licensed and comprehensively insured.</p>
+                <h3>Professional drivers</h3>
+                <p>Chauffeurs who focus on safety, discretion, and a calm guest experience.</p>
               </div>
               <div className="why-card">
-                <h3>Local mastery</h3>
-                <p>Guides who know Cape Town beyond the postcard stops.</p>
+                <h3>Comfortable vehicles</h3>
+                <p>A maintained fleet suited to airport runs, hotel transfers, and full-day touring.</p>
               </div>
               <div className="why-card">
-                <h3>On the minute</h3>
-                <p>Airport meets, hotel runs, and day tours that respect your schedule.</p>
+                <h3>On your schedule</h3>
+                <p>Airport meets, staff transport, and private tours planned around your timing.</p>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="tours" className="section tours">
-          <div className="container section-inner">
-            <header className="section-header center">
-              <p className="eyebrow">Signature Experiences</p>
-              <h2>Curated Private Tours</h2>
-              <p className="section-intro max-720">
-                <span className="desktop-only">Scenic drives, iconic landmarks, and bespoke itineraries designed for families, couples, and corporate
-                travellers.</span>
-                <span className="mobile-only">Scenic drives, iconic landmarks, and bespoke itineraries.</span>
-              </p>
-            </header>
-            <div className="cards-grid" aria-live="polite">
-              {tours.slice(0, 3).map((tour) => (
-                <article className="card tour-card soft" key={tour.id}>
-                  {tour.image && (
-                    <div className="tour-image-wrapper">
-                      <SafeImage src={tour.image} alt={tour.name} className="tour-image" fallbackLabel={tour.name} />
-                    </div>
-                  )}
-                  <div className="card-header">
-                    <div>
-                      <h3 className="card-title">{tour.name}</h3>
-                      <p className="tour-duration">{tour.duration}</p>
-                      {tour.rating && (
-                        <div className="rating" style={{ marginTop: "0.5rem" }}>
-                          <span className="stars" aria-hidden="true">
-                            {formatStars(tour.rating)}
-                          </span>
-                          <span style={{ fontSize: "0.85rem", marginLeft: "0.5rem" }}>
-                            {tour.rating.toFixed(1)}/5
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    {tour.promotion ? (
-                      <span className="badge badge-gold" aria-label="Holiday promotion">
-                        {tour.promotion}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="card-meta">{tour.description}</p>
-                  <ul className="tour-highlights">
-                    {tour.highlights.map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ul>
-                  <div className="card-footer">
-                    <div>
-                      <div className="tour-price">{tour.priceFrom}</div>
-                      <div className="rating">
-                        <span className="stars" aria-hidden="true">
-                          {formatStars(tour.rating)}
-                        </span>
-                        <span>Rated {tour.rating.toFixed(1)}/5</span>
-                      </div>
-                    </div>
-                    <Link to={`/tours/${tour.id}`} className="btn btn-outline" style={{ textDecoration: "none" }}>
-                      View Details
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-            <div style={{ textAlign: "center", marginTop: "2rem" }}>
-              <Link to="/tours" className="btn btn-primary">
-                View All Tours
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        <section id="vehicles" className="section vehicles">
+        <section id="vehicles" className="section vehicles" aria-labelledby="fleet-heading">
           <div className="container section-inner">
             <header className="section-header center">
               <p className="eyebrow">Our Fleet</p>
-              <h2>Luxury Vehicles for Every Journey</h2>
+              <h2 id="fleet-heading">Vehicles for every journey</h2>
+              <p className="section-intro max-720">
+                From executive sedans to group shuttles — choose the vehicle that fits your party and luggage.
+              </p>
             </header>
-            <div className="cards-grid vehicles-grid" aria-live="polite">
-              {vehicles.map((vehicle) => (
+            <div className="cards-grid vehicles-grid">
+              {vehicles.slice(0, 4).map((vehicle) => (
                 <article className="card soft" key={vehicle.name}>
                   {vehicle.image && (
                     <div className="vehicle-image-wrapper">
@@ -316,280 +229,138 @@ function Home() {
                       <h3 className="card-title">{vehicle.name}</h3>
                       <p className="card-meta">{vehicle.tag}</p>
                     </div>
-                    <span className="badge badge-teal">Fleet</span>
                   </div>
                   <div className="card-body">
                     <div className="vehicle-capacity">
                       <span className="chip">Capacity: {vehicle.capacity}</span>
                       <span className="chip">Luggage: {vehicle.luggage}</span>
                     </div>
-                    <ul className="vehicle-features">
-                      {vehicle.features.map((f) => (
-                        <li key={f}>{f}</li>
-                      ))}
-                    </ul>
                   </div>
                 </article>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section id="drivers" className="section drivers">
-          <div className="container section-inner">
-            <header className="section-header center">
-              <p className="eyebrow">Our Drivers</p>
-              <h2>Professional, Experienced, and Personable</h2>
-              <p className="section-intro max-720">
-                Our drivers are more than chauffeurs—they're your local guides, ensuring a safe, comfortable, and
-                informative journey.
-              </p>
-            </header>
-            <div className="cards-grid" aria-live="polite">
-              {[...drivers].sort((a, b) => (b.rating || 0) - (a.rating || 0)).map((driver) => (
-                <article className="card soft" key={driver.name}>
-                  <div className="card-header" style={{ display: "flex", alignItems: "center", gap: "1.5rem", flexDirection: "row-reverse" }}>
-                    {driver.image && (
-                      <SafeImage
-                        src={driver.image}
-                        alt={driver.name}
-                        fallbackLabel={driver.name}
-                        style={{
-                          width: "160px",
-                          height: "160px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          border: "2px solid var(--border-gold)",
-                          flexShrink: 0
-                        }}
-                      />
-                    )}
-                    <div style={{ flex: 1 }}>
-                      <h3 className="card-title">{driver.name}</h3>
-                      <p className="card-meta">{driver.experience}</p>
-                      {driver.rating && (
-                        <div className="rating" style={{ marginTop: "0.5rem" }}>
-                          <span className="stars" aria-hidden="true">
-                            {formatStars(driver.rating)}
-                          </span>
-                          <span style={{ fontSize: "0.8rem", marginLeft: "0.5rem" }}>{driver.rating.toFixed(1)}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {driver.languages && driver.languages.length > 0 && (
-                    <p className="card-meta" style={{ marginTop: "0.5rem" }}>
-                      <strong>Languages:</strong> {driver.languages.join(", ")}
-                    </p>
-                  )}
-                  {driver.skills && driver.skills.length > 0 && (
-                    <div style={{ marginTop: "0.8rem" }}>
-                      <p className="card-meta" style={{ marginBottom: "0.4rem" }}>
-                        <strong>Expertise:</strong>
-                      </p>
-                      <ul style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--text-soft)" }}>
-                        {driver.skills.map((skill, idx) => (
-                          <li key={idx} style={{ marginBottom: "0.3rem" }}>
-                            {skill}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="reviews" className="section reviews">
-          <div className="container section-inner">
-            <header className="section-header center">
-              <p className="eyebrow">Client Reviews</p>
-              <h2>What Our Guests Say</h2>
-            </header>
-            <div className="cards-grid" aria-live="polite">
-              {reviewsLoading && <p style={{ textAlign: "center", gridColumn: "1 / -1" }}>Loading reviews…</p>}
-              {!reviewsLoading && reviews.map((review, index) => (
-                <article className="card soft" key={review.id || index}>
-                  <div className="card-header">
-                    <div>
-                      <h3 className="card-title">{review.name}</h3>
-                      <p className="card-meta">
-                        {review.target_name || review.tourName || (review.review_type === "driver" ? "Driver" : "Tour")}
-                      </p>
-                    </div>
-                    <div className="rating">
-                      <span className="stars" aria-hidden="true">
-                        {formatStars(review.rating)}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="card-body">{review.text || review.comment}</p>
-                  <div className="review-footer">
-                    <span className="chip">
-                      {review.review_type === "driver" ? "Driver review" : "Tour review"}
-                    </span>
-                    <span className="chip">UNICAB guest</span>
-                  </div>
-                </article>
-              ))}
-              {!reviewsLoading && !reviews.length && (
-                <p style={{ textAlign: "center", gridColumn: "1 / -1", color: "var(--text-soft)" }}>
-                  Be the first to leave a review after your tour.
-                </p>
-              )}
-            </div>
-            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-              <Link to="/reviews" className="btn btn-outline">See all reviews</Link>
-            </div>
-          </div>
-        </section>
-
-        <section id="membership" className="section membership">
-          <div className="container section-inner">
-            <header className="section-header center">
-              <p className="eyebrow">Membership</p>
-              <h2>Exclusive Travel Benefits</h2>
-              <p className="section-intro max-720">
-                Join for priority booking, preferred rates, and exclusive access. Choose the plan that suits your travel.
-              </p>
-            </header>
-            <div className="cards-grid" aria-live="polite">
-              {membershipPlans.map((plan) => (
-                <article className="card soft" key={plan.id}>
-                  <div className="card-header">
-                    <h3 className="card-title">{plan.name}</h3>
-                    <span className="badge badge-gold">{plan.price}</span>
-                  </div>
-                  {plan.shortDescription && (
-                    <p style={{ fontSize: "0.9rem", color: "var(--text-soft)", marginBottom: "1rem", lineHeight: 1.6 }}>
-                      {plan.shortDescription}
-                    </p>
-                  )}
-                  <ul className="card-body">
-                    {plan.benefits.map((benefit) => (
-                      <li key={benefit}>{benefit}</li>
-                    ))}
-                  </ul>
-                  <div className="card-footer">
-                    <Link className="btn btn-primary" to={`/membership/transaction/${plan.id}`}>
-                      Join Now
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-            <div style={{ marginTop: "2rem", textAlign: "center" }}>
-              <Link to="/membership/comparison" className="btn btn-outline">
-                Compare plans
+            <div className="section-cta">
+              <Link to="/vehicles" className="btn btn-outline">
+                View full fleet
               </Link>
             </div>
           </div>
         </section>
 
-        <section id="safety" className="section safety-emphasis">
+        <section id="tours" className="section tours" aria-labelledby="tours-heading">
           <div className="container section-inner">
             <header className="section-header center">
-              <p className="eyebrow">Your Safety is Our Priority</p>
-              <h2>Safe Travels with UNICAB</h2>
-              <div className="section-intro max-720">
-                <p className="desktop-only" style={{ fontSize: "1.1rem", lineHeight: "1.8", marginBottom: "1rem" }}>
-                  <strong>UNICAB ensures the safety of all clients</strong> with road-worthy vehicles that meet the highest standards of maintenance and inspection. Our entire fleet undergoes regular safety checks to guarantee reliability and peace of mind on every journey.
-                </p>
-                <p className="mobile-only" style={{ fontSize: "1rem", lineHeight: "1.7", marginBottom: "1rem" }}>
-                  <strong>UNICAB ensures the safety of all clients</strong> with road-worthy vehicles and regular safety inspections.
-                </p>
-                <p className="desktop-only" style={{ fontSize: "1.1rem", lineHeight: "1.8" }}>
-                  <strong>South Africa is a safe place to visit</strong> in the hands of our expert drivers who know the city inside and out. With years of local experience, our professional chauffeurs navigate Cape Town's routes with confidence, ensuring you reach your destination safely and comfortably.
-                </p>
-                <p className="mobile-only" style={{ fontSize: "1rem", lineHeight: "1.7" }}>
-                  <strong>South Africa is a safe place to visit</strong> with our expert drivers who know Cape Town inside and out.
-                </p>
-              </div>
-            </header>
-            <div className="why-grid" style={{ marginTop: "2.5rem" }}>
-              <div className="why-card">
-                <div className="why-icon">🛡️</div>
-                <h3>Road-Worthy Vehicles</h3>
-                <p>All vehicles undergo rigorous safety inspections and maintenance to ensure they meet the highest road safety standards.</p>
-              </div>
-              <div className="why-card">
-                <div className="why-icon">🚗</div>
-                <h3>Expert Local Drivers</h3>
-                <p>Our experienced drivers know Cape Town's streets, routes, and traffic patterns, ensuring safe and efficient travel.</p>
-              </div>
-              <div className="why-card">
-                <div className="why-icon">✅</div>
-                <h3>Fully Licensed & Insured</h3>
-                <p>Complete peace of mind with comprehensive insurance coverage and all necessary licenses and certifications.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="about" className="section about slim">
-          <div className="container section-inner center">
-            <p className="eyebrow">About Us</p>
-            <h2>Quietly Moving Cape Town's Guests Since 1989</h2>
-            <div className="section-intro max-720" style={{ textAlign: "left", maxWidth: "900px" }}>
-              <p className="desktop-only">
-                Since its launch in 1989, the company has grown into one of the most recognizable 'people mover' brands
-                in and around Cape Town.
-              </p>
-              <p className="mobile-only">
-                Since 1989, we've grown into one of Cape Town's most recognizable transport brands.
-              </p>
-              <p className="desktop-only">
-                From initially servicing the iconic Mount Nelson Hotel with a fleet of chauffeur driven luxury vehicles,
-                UNICAB also became the first external operator of The Mount Nelson's Travel Desk. To date, we have
-                exclusive service level agreements with more than 90% of Cape Town's Hotel & Guest House infrastructure
-                along the Atlantic Seaboard, Cape Town's Waterfront hub, the inner city & the southern suburbs.
-              </p>
-              <p className="mobile-only">
-                We service over 90% of Cape Town's hotels and guest houses with our luxury fleet.
-              </p>
-              <p className="desktop-only">
-                Our expanding clientele base as well as our service diversification necessitated a rapid increase in
-                our fleet of vehicles.
-              </p>
-              <p className="desktop-only">
-                Rapid expansion & diversification also necessitated increasing investments in our fleet management
-                systems. To better serve our clients and streamline operations, UNICAB is developing its own mobile
-                application, which will be available soon.
-              </p>
-              <p className="desktop-only">
-                With our advanced Vehicle Management Systems and commitment to innovation, UNICAB has managed to remain
-                a market leader in safe and reliable transport solutions to the tourist, leisure and corporate markets.
-              </p>
-              <p className="mobile-only">
-                A market leader in safe and reliable transport solutions with advanced fleet management systems.
-              </p>
-              <p className="desktop-only" style={{ marginTop: "1.5rem", fontStyle: "italic", color: "var(--text-soft)" }}>
-                We no longer rely on old contracts but have built new relationships and pride ourselves on professional
-                conduct and service excellence.
-              </p>
-              <p className="mobile-only" style={{ marginTop: "1rem", fontStyle: "italic", color: "var(--text-soft)" }}>
-                Professional conduct and service excellence.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section id="contact" className="section contact">
-          <div className="container section-inner">
-            <header className="section-header center">
-              <p className="eyebrow">Contact Us</p>
-              <h2>Get in Touch</h2>
+              <p className="eyebrow">Private tours</p>
+              <h2 id="tours-heading">Cape Town &amp; the Western Cape</h2>
               <p className="section-intro max-720">
-                Ready to plan your Cape Town adventure? Contact us today and let us create a personalized experience for
-                you.
+                City highlights, peninsula routes, winelands days, and multi-day journeys — privately guided around your interests.
+              </p>
+            </header>
+            <div className="cards-grid">
+              {tours.slice(0, 3).map((tour) => (
+                <article className="card tour-card soft" key={tour.id}>
+                  {tour.image && (
+                    <div className="tour-image-wrapper">
+                      <SafeImage src={tour.image} alt={tour.name} className="tour-image" fallbackLabel={tour.name} />
+                    </div>
+                  )}
+                  <div className="card-header">
+                    <div>
+                      <h3 className="card-title">{tour.name}</h3>
+                      <p className="tour-duration">{tour.duration}</p>
+                    </div>
+                  </div>
+                  <p className="card-meta">{tour.description}</p>
+                  <div className="card-footer">
+                    <div className="tour-price">{getPublicPriceLabel(tour)}</div>
+                    <Link to={`/tours/${tour.id}`} className="btn btn-outline">
+                      View Details
+                    </Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+            <div className="section-cta">
+              <Link to="/tours" className="btn btn-primary">
+                View all tours
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="section how-it-works" aria-labelledby="how-heading">
+          <div className="container section-inner">
+            <header className="section-header center">
+              <p className="eyebrow">Simple process</p>
+              <h2 id="how-heading">How it works</h2>
+            </header>
+            <div className="why-grid">
+              {HOW_IT_WORKS.map((item) => (
+                <div className="why-card" key={item.step}>
+                  <p className="step-number" aria-hidden="true">
+                    {item.step}
+                  </p>
+                  <h3>{item.title}</h3>
+                  <p>{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="about" className="section about slim trust-section" aria-labelledby="trust-heading">
+          <div className="container section-inner center">
+            <p className="eyebrow">About UNICAB</p>
+            <h2 id="trust-heading">Cape Town travel, handled with care</h2>
+            <div className="section-intro max-720" style={{ textAlign: "left" }}>
+              <p>
+                UNICAB Travel &amp; Tours provides private transfers, airport transfers, staff and corporate transport, and private tours across Cape Town and the Western Cape.
+              </p>
+              <p>
+                We focus on clear communication, comfortable vehicles, and professional drivers so your journey feels organised from first contact to final drop-off.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="section cta-band" aria-labelledby="cta-heading">
+          <div className="container section-inner center">
+            <h2 id="cta-heading">Ready to arrange your transfer or tour?</h2>
+            <p className="section-intro max-720">
+              Request a booking online or message us on WhatsApp with your dates and requirements.
+            </p>
+            <div className="hero-actions" style={{ justifyContent: "center" }}>
+              <Link to="/book" className="btn btn-primary">
+                Book Now
+              </Link>
+              <a
+                className="btn btn-grey"
+                href={siteConfig.whatsapp.linkWithMessage}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
+              <button type="button" className="btn btn-outline" onClick={() => scrollToSection("contact")}>
+                Send a message
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <section id="contact" className="section contact" aria-labelledby="contact-heading">
+          <div className="container section-inner">
+            <header className="section-header center">
+              <p className="eyebrow">Contact</p>
+              <h2 id="contact-heading">Get in touch</h2>
+              <p className="section-intro max-720">
+                Tell us about your transfer, tour, or corporate transport needs and we will respond with next steps.
               </p>
             </header>
             <div className="contact-grid">
               <form className="contact-form" onSubmit={handleSubmit} noValidate>
                 {successMsg && (
-                  <div className="form-success" role="alert">
+                  <div className="form-success" role="status">
                     {successMsg}
                   </div>
                 )}
@@ -601,23 +372,23 @@ function Home() {
                 <div className="form-row">
                   <div className="form-field">
                     <label htmlFor="name">Full Name</label>
-                    <input type="text" id="name" name="name" required aria-invalid={!!errors.name} />
+                    <input type="text" id="name" name="name" required autoComplete="name" aria-invalid={!!errors.name} />
                     {errors.name && <span className="field-error">{errors.name}</span>}
                   </div>
                   <div className="form-field">
                     <label htmlFor="email">Email</label>
-                    <input type="email" id="email" name="email" required aria-invalid={!!errors.email} />
+                    <input type="email" id="email" name="email" required autoComplete="email" aria-invalid={!!errors.email} />
                     {errors.email && <span className="field-error">{errors.email}</span>}
                   </div>
                 </div>
                 <div className="form-field">
                   <label htmlFor="phone">Phone</label>
-                  <input type="tel" id="phone" name="phone" required aria-invalid={!!errors.phone} />
+                  <input type="tel" id="phone" name="phone" required autoComplete="tel" aria-invalid={!!errors.phone} />
                   {errors.phone && <span className="field-error">{errors.phone}</span>}
                 </div>
                 <div className="form-field">
                   <label htmlFor="message">Message</label>
-                  <textarea id="message" name="message" rows="5" required aria-invalid={!!errors.message}></textarea>
+                  <textarea id="message" name="message" rows="5" required aria-invalid={!!errors.message} />
                   {errors.message && <span className="field-error">{errors.message}</span>}
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
@@ -626,34 +397,24 @@ function Home() {
               </form>
               <aside className="contact-aside">
                 <div className="contact-card">
-                  <h3>Contact Information</h3>
+                  <h3>Contact information</h3>
                   <ul className="contact-list">
                     <li>
                       <strong>Email:</strong>{" "}
-                      <a href={`mailto:${siteConfig.email}`} style={{ color: "var(--accent-gold)", textDecoration: "none" }}>
-                        {siteConfig.email}
-                      </a>
+                      <a href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
                     </li>
                     <li>
                       <strong>Phone:</strong>{" "}
-                      <a
-                        href={`tel:${siteConfig.phone.tel}`}
-                        style={{ color: "var(--accent-gold)", textDecoration: "none" }}
-                      >
-                        {siteConfig.phone.display}
-                      </a>
-                      {" · "}
-                      <a
-                        href={siteConfig.whatsapp.directLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: "var(--accent-gold)", textDecoration: "none" }}
-                      >
-                        WhatsApp
+                      <a href={`tel:${siteConfig.phone.tel}`}>{siteConfig.phone.display}</a>
+                    </li>
+                    <li>
+                      <strong>WhatsApp:</strong>{" "}
+                      <a href={siteConfig.whatsapp.directLink} target="_blank" rel="noopener noreferrer">
+                        {siteConfig.whatsapp.displayNumber}
                       </a>
                     </li>
                     <li>
-                      <strong>Hours:</strong> 24/7 Operations &amp; Dispatch
+                      <strong>Service area:</strong> Cape Town &amp; the Western Cape
                     </li>
                   </ul>
                 </div>
@@ -669,4 +430,3 @@ function Home() {
 }
 
 export default Home;
-

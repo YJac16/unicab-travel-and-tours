@@ -32,6 +32,13 @@ Run `npm run phase0` (`node scripts/phase0-check.js`) after env is set — it fa
    - Save that value to Vercel as `YOCO_WEBHOOK_SECRET` and redeploy.
    - Notification URL: `https://www.unicabtraveltours.com/api/payments/webhook`
 
+## Domains (critical)
+
+- Prefer **www**: `https://www.unicabtraveltours.com`
+- Apex `unicabtraveltours.com` must point to the **same Vercel project** as www (A/ALIAS or redirect apex → www).
+- If apex still resolves to Railway or fails TLS, visitors on the bare domain will see a 404 / SSL error while www works.
+- In Vercel → Project → Domains: add both apex and www; enable redirect apex → www.
+
 ## Vercel
 
 - Project: unicab-travel-and-tours

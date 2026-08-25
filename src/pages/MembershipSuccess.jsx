@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { membershipPlans } from "../data";
 import { confirmYocoPayment } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
+import DocumentTitle from "../components/DocumentTitle";
 
 function readStoredCheckout(tier, userId) {
   try {
@@ -100,6 +101,7 @@ function MembershipSuccess() {
 
   return (
     <div>
+      <DocumentTitle title="Membership success" description="UNICAB membership confirmation." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

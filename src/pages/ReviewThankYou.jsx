@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import DocumentTitle from "../components/DocumentTitle";
 
 function ReviewThankYou() {
   const location = useLocation();
@@ -7,6 +8,7 @@ function ReviewThankYou() {
 
   return (
     <div>
+      <DocumentTitle title="Thank you for your review" description="Your UNICAB review has been submitted." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

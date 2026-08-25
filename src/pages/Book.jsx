@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { getTours, formatTourPrice, calculateTourPrice } from "../lib/api";
-import ProfileDropdown from "../components/ProfileDropdown";
+import { getTours, getPublicPriceLabel } from "../lib/api";
+import DocumentTitle from "../components/DocumentTitle";
+import PublicHeader from "../components/PublicHeader";
 import SafeImage from "../components/SafeImage";
+import SiteFooter from "../components/SiteFooter";
 import { useLocale } from "../contexts/LocaleContext";
 import LocaleSwitcher from "../components/LocaleSwitcher";
 
-const formatStars = (rating) => {
-  const fullStars = Math.round(rating || 0);
-  return "★".repeat(fullStars) + "☆".repeat(5 - fullStars);
-};
-
-/**
- * Booking entry: pick a tour (live /api/tours with local fallback), then booking form.
- */
 function Book() {
   const [searchParams] = useSearchParams();
   const packageId = searchParams.get("package");
@@ -37,53 +31,21 @@ function Book() {
   }, []);
 
   return (
-    <div>
-      <header className="site-header">
-        <div className="container header-inner">
-          <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">
-            <img src="/logo-white.png" alt="UNICAB Travel & Tours" className="logo-img" />
-          </Link>
-
-          <nav className="main-nav" aria-label="Primary">
-            <ul>
-              <li>
-                <Link className="link-button" to="/">
-                  {t("home")}
-                </Link>
-              </li>
-              <li>
-                <Link className="link-button" to="/tours">
-                  {t("tours")}
-                </Link>
-              </li>
-              <li>
-                <Link className="link-button" to="/book">
-                  {t("book")}
-                </Link>
-              </li>
-              <li className="cta-nav">
-                <Link className="btn btn-primary btn-compact" to="/book">
-                  {t("bookNow")}
-                </Link>
-              </li>
-            </ul>
-          </nav>
-
-          <div style={{ marginLeft: "0.75rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
-            <LocaleSwitcher />
-            <ProfileDropdown />
-          </div>
-        </div>
-      </header>
+    <>
+      <DocumentTitle
+        title="Book"
+        description="Book a UNICAB private tour or transfer in Cape Town and the Western Cape."
+      />
+      <PublicHeader trailing={<LocaleSwitcher />} />
 
       <main>
-        <section className="section tours" style={{ paddingTop: "8rem" }}>
+        <section className="section tours page-section">
           <div className="container section-inner">
             <header className="section-header center">
               <p className="eyebrow">{t("book")}</p>
               <h1>{t("chooseExperience")}</h1>
               <p className="section-intro max-720">
-                Select a tour to continue to dates, group size, and driver selection.
+                Select a tour to continue to dates, group size, and driver selection. Pricing is confirmed during booking.
               </p>
             </header>
 
@@ -91,68 +53,52 @@ function Book() {
               <p style={{ textAlign: "center" }}>Loading tours…</p>
             ) : (
               <div className="cards-grid" aria-live="polite">
-                {tours.map((tour) => {
-                  const fromPrice = calculateTourPrice(tour, 2) || calculateTourPrice(tour, 1);
-                  return (
-                    <article className="card tour-card soft" key={tour.id}>
-                      {tour.image && (
-                        <div className="tour-image-wrapper">
-                          <SafeImage
-                            src={tour.image}
-                            alt={tour.name}
-                            className="tour-image"
-                            fallbackLabel={tour.name}
-                          />
-                        </div>
-                      )}
-                      <div className="card-header">
-                        <div>
-                          <h3 className="card-title">{tour.name}</h3>
-                          <p className="tour-duration">{tour.duration}</p>
-                          {tour.rating && (
-                            <div className="rating" style={{ marginTop: "0.5rem" }}>
-                              <span className="stars" aria-hidden="true">
-                                {formatStars(tour.rating)}
-                              </span>
-                              <span style={{ fontSize: "0.85rem", marginLeft: "0.5rem" }}>
-                                {tour.rating.toFixed(1)}/5
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                {tours.map((tour) => (
+                  <article className="card tour-card soft" key={tour.id}>
+                    {tour.image && (
+                      <div className="tour-image-wrapper">
+                        <SafeImage
+                          src={tour.image}
+                          alt={tour.name}
+                          className="tour-image"
+                          fallbackLabel={tour.name}
+                        />
                       </div>
-                      <p className="card-body" style={{ fontSize: "0.95rem" }}>
-                        {tour.priceFrom || (fromPrice ? `From ${formatTourPrice(fromPrice)}` : "Price on request")}
-                      </p>
-                      <div className="card-footer" style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                        <Link
-                          to={
-                            packageId
-                              ? `/tours/${tour.id}/booking?package=${encodeURIComponent(packageId)}`
-                              : `/tours/${tour.id}/booking`
-                          }
-                          className="btn btn-primary btn-compact"
-                          style={{ textDecoration: "none" }}
-                        >
-                          Book this tour
-                        </Link>
-                        <Link
-                          to={`/tours/${tour.id}`}
-                          className="btn btn-outline btn-compact"
-                          style={{ textDecoration: "none" }}
-                        >
-                          Details
-                        </Link>
+                    )}
+                    <div className="card-header">
+                      <div>
+                        <h2 className="card-title">{tour.name}</h2>
+                        <p className="tour-duration">{tour.duration}</p>
                       </div>
-                    </article>
-                  );
-                })}
+                    </div>
+                    <p className="card-body" style={{ fontSize: "0.95rem" }}>
+                      {getPublicPriceLabel(tour)}
+                    </p>
+                    <div className="card-footer card-actions">
+                      <Link
+                        to={
+                          packageId
+                            ? `/tours/${tour.id}/booking?package=${encodeURIComponent(packageId)}`
+                            : `/tours/${tour.id}/booking`
+                        }
+                        className="btn btn-primary btn-compact"
+                      >
+                        Book this tour
+                      </Link>
+                      <Link to={`/tours/${tour.id}`} className="btn btn-outline btn-compact">
+                        Details
+                      </Link>
+                    </div>
+                  </article>
+                ))}
               </div>
             )}
           </div>
         </section>
       </main>
-    </div>
+
+      <SiteFooter />
+    </>
   );
 }
 

@@ -43,6 +43,7 @@ export default function SafeImage({
       style={style}
       onError={() => setFailed(true)}
       loading="lazy"
+      decoding="async"
     />
   );
 }

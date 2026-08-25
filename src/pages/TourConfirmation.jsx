@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { siteConfig } from "../config";
+import DocumentTitle from "../components/DocumentTitle";
 
 function TourConfirmation() {
   const location = useLocation();
@@ -9,6 +10,7 @@ function TourConfirmation() {
   if (!booking) {
     return (
       <div>
+        <DocumentTitle title="Booking confirmation" description="UNICAB booking confirmation." />
         <main style={{ paddingTop: "8rem", textAlign: "center" }}>
           <div className="container">
             <h2>Booking Not Found</h2>
@@ -23,6 +25,7 @@ function TourConfirmation() {
 
   return (
     <div>
+      <DocumentTitle title="Booking confirmation" description="Your UNICAB tour booking confirmation." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

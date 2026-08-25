@@ -1,8 +1,9 @@
 import { getTourReviews, getDriverReviews } from './api';
-import { tours, drivers, reviews as staticReviews } from '../data';
+import { tours, drivers } from '../data';
 
 /**
  * Load a mixed feed of approved tour + driver reviews for marketing pages.
+ * No static/fallback testimonials — empty means empty.
  */
 export async function getPublicReviewsFeed(limit = 24) {
   const tourResults = await Promise.all(
@@ -40,18 +41,5 @@ export async function getPublicReviewsFeed(limit = 24) {
     return db - da;
   });
 
-  if (live.length) {
-    return live.slice(0, limit);
-  }
-
-  // Fallback to static marketing reviews
-  return (staticReviews || []).map((r, i) => ({
-    id: `static-${i}`,
-    name: r.name,
-    text: r.text,
-    rating: r.rating,
-    review_type: r.tourId ? 'tour' : 'driver',
-    target_name: r.tourId || r.driverId || '',
-    approved: true,
-  }));
+  return live.slice(0, limit);
 }

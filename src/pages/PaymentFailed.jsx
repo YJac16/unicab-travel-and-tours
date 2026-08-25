@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { createYocoPayment } from "../lib/api";
 import { siteConfig } from "../config";
+import DocumentTitle from "../components/DocumentTitle";
 
 function PaymentFailed() {
   const [searchParams] = useSearchParams();
@@ -53,6 +54,7 @@ function PaymentFailed() {
 
   return (
     <div>
+      <DocumentTitle title="Payment not completed" description="Retry or complete your UNICAB payment." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

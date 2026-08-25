@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import SiteFooter from '../components/SiteFooter';
+import DocumentTitle from '../components/DocumentTitle';
 
 function CancellationPolicy() {
   return (
     <div>
+      <DocumentTitle title="Cancellation Policy" description="UNICAB Travel & Tours cancellation and refund policy." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo">

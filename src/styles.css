@@ -2431,3 +2431,259 @@ textarea:focus-visible {
 }
 
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+/* —— Audit cleanup: shared public layout polish —— */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.page-section {
+  padding-top: 7.5rem;
+}
+
+.header-trailing {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+.section-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.step-number {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--accent-gold);
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+}
+
+.cta-band {
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-soft);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.cta-panel {
+  margin-top: 2rem;
+  padding: 1.75rem;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-soft);
+}
+
+.cta-panel h2 {
+  margin-top: 0;
+}
+
+.tour-detail {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.tour-detail-image {
+  margin-bottom: 1.5rem;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.tour-detail-img {
+  width: 100%;
+  height: min(400px, 55vw);
+  object-fit: cover;
+  display: block;
+}
+
+.tour-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.tour-detail-header h1 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+}
+
+.tour-detail-meta {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  color: var(--text-soft);
+}
+
+.driver-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-direction: row-reverse;
+}
+
+.driver-card-header .driver-avatar,
+img.driver-avatar {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-gold);
+  flex-shrink: 0;
+}
+
+.review-snippet {
+  margin-bottom: 0.85rem;
+  padding: 0.85rem;
+  background: var(--bg-soft);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-soft);
+}
+
+.review-snippet-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.filter-row {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.enquiry-panel {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  max-width: 520px;
+}
+
+.membership-disclaimer {
+  margin: 2rem auto 0;
+  max-width: 720px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.footer-contact {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-soft);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.footer-contact a {
+  color: var(--accent-gold);
+  text-decoration: none;
+}
+
+.footer-contact a:hover,
+.footer-contact a:focus-visible {
+  text-decoration: underline;
+}
+
+.contact-list a {
+  color: var(--accent-gold);
+  text-decoration: none;
+}
+
+.contact-list a:hover,
+.contact-list a:focus-visible {
+  text-decoration: underline;
+}
+
+.plan-popular {
+  border-color: var(--border-gold);
+}
+
+.btn:focus-visible,
+.link-button:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent-gold);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .page-section {
+    padding-top: 6.5rem;
+  }
+
+  .driver-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .driver-card-header .driver-avatar,
+  img.driver-avatar {
+    width: 112px;
+    height: 112px;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-actions {
+    width: 100%;
+  }
+
+  .card-actions .btn {
+    flex: 1 1 auto;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions .btn {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .section-header h1,
+  .section-header h2 {
+    font-size: 1.45rem;
+  }
+}

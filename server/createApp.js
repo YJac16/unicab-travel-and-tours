@@ -165,6 +165,9 @@ function createApp({ serveStatic = false } = {}) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return res.status(400).json({ ok: false, message: 'Please provide a valid email address.' });
     }
+    if (phone.length < 7) {
+      return res.status(400).json({ ok: false, message: 'Please provide a valid phone number.' });
+    }
     if (message.length < 10) {
       return res.status(400).json({
         ok: false,

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { confirmYocoPayment } from "../lib/api";
+import DocumentTitle from "../components/DocumentTitle";
 
 function PaymentSuccess() {
   const [searchParams] = useSearchParams();
@@ -37,6 +38,7 @@ function PaymentSuccess() {
 
   return (
     <div>
+      <DocumentTitle title="Payment successful" description="UNICAB payment confirmation." />
       <header className="site-header">
         <div className="container header-inner">
           <Link to="/" className="logo" aria-label="UNICAB Travel & Tours - Home">

@@ -3,14 +3,17 @@ import { getPriceForGroupSize } from './lib/pricing';
 
 const getPriceForPax = (pricing, pax) => getPriceForGroupSize(pricing, pax);
 
+/**
+ * priceFrom strings are retained for an upcoming pricing sync only.
+ * Public UI must use getPublicPriceLabel() — do not display priceFrom until confirmed.
+ */
 export const tours = [
   {
     id: "ct-city-table-mountain",
     name: "Cape Town & Table Mountain City Tour",
     duration: "Full Day (8–9 hours)",
-    rating: 4.9,
     priceFrom: "From R750",
-    promotion: "Festive Special",
+    promotion: null,
     image: "/bokaap.jpg",
     pricing: {
       1: 4500,
@@ -39,9 +42,8 @@ export const tours = [
     id: "cape-peninsula",
     name: "Cape Peninsula Tour with Boulders Beach Penguins",
     duration: "Full Day (8–9 hours)",
-    rating: 5.0,
     priceFrom: "From R1,200",
-    promotion: "Holiday Favourite",
+    promotion: null,
     image: "/boulders-beach.jpg",
     pricing: {
       1: 5500,
@@ -70,7 +72,6 @@ export const tours = [
     id: "garden-route-short",
     name: "Garden Route Tour (3 Days / 2 Nights)",
     duration: "3 Days / 2 Nights",
-    rating: 4.8,
     priceFrom: "From R8,300",
     promotion: null,
     image: "/garden-route.jpg",
@@ -107,9 +108,8 @@ export const tours = [
     id: "garden-route-extended",
     name: "Garden Route Extended Tour (5 Days / 4 Nights)",
     duration: "5 Days / 4 Nights",
-    rating: 5.0,
     priceFrom: "From R14,200",
-    promotion: "Extended Stay Offer",
+    promotion: null,
     image: "/garden-route.jpg",
     pricing: {
       2: 22500,
@@ -143,9 +143,8 @@ export const tours = [
     id: "wine-tour",
     name: "Franschhoek Wine Tram & Winelands Tour",
     duration: "Full Day (8–9 hours)",
-    rating: 4.9,
     priceFrom: "From R750",
-    promotion: "Wine Lover's Choice",
+    promotion: null,
     image: "/wine-tour.jpg",
     pricing: {
       1: 4200,
@@ -163,21 +162,20 @@ export const tours = [
     }, pax),
     highlights: [
       "Experience the iconic Franschhoek Wine Tram through scenic vineyards",
-      "Visit multiple award-winning wine estates for tastings",
+      "Visit wine estates for tastings",
       "Explore charming Franschhoek village with its French heritage",
-      "Optional gourmet lunch at a renowned wine estate restaurant"
+      "Optional lunch at a wine estate restaurant"
     ],
     description:
-      "Journey through the heart of the Cape Winelands on this exclusive private tour. Ride the vintage Franschhoek Wine Tram, sample world-class wines, and discover the rich history and stunning landscapes of South Africa's premier wine region.",
+      "Journey through the heart of the Cape Winelands on this exclusive private tour. Ride the Franschhoek Wine Tram, sample regional wines, and discover the landscapes of South Africa's premier wine region.",
     notes: "Tastings excluded unless specified."
   },
   {
     id: "aquila-safari",
     name: "Aquila Private Game Reserve Safari",
     duration: "Full Day (8–9 hours)",
-    rating: 5.0,
     priceFrom: "From R2,800",
-    promotion: "Exclusive Partner",
+    promotion: null,
     image: "/safari.jpg",
     pricing: {
       1: 5900,
@@ -194,22 +192,21 @@ export const tours = [
       1: 5900, 2: 4500, 3: 4000, 4: 3700, "5-6": 3400, "7-10": 3200, "11-14": 3000, "15-18": 2900, "19-22": 2800
     }, pax),
     highlights: [
-      "Exclusive access to Aquila Private Game Reserve",
-      "Game drive to spot the Big 5: lion, elephant, buffalo, rhino, and leopard",
-      "Professional ranger-guided safari experience",
-      "Optional lunch at the reserve's restaurant with mountain views"
+      "Access to Aquila Private Game Reserve",
+      "Game drive with opportunities to see Big 5 wildlife",
+      "Ranger-guided safari experience",
+      "Optional lunch at the reserve restaurant"
     ],
     description:
-      "Experience an authentic African safari just two hours from Cape Town. We exclusively partner with Aquila Private Game Reserve, offering you a premium wildlife experience with the Big 5 in a malaria-free environment. Perfect for families and first-time safari-goers.",
+      "Experience a day safari within easy reach of Cape Town. Travel with UNICAB to Aquila Private Game Reserve for a guided wildlife experience in a malaria-free setting — suited to families and first-time safari guests.",
     notes: "Includes transport, lunch & shared game drive."
   },
   {
     id: "west-coast",
     name: "West Coast Coastal & Wildflower Tour",
     duration: "Full Day (8–9 hours)",
-    rating: 4.7,
     priceFrom: "From R1,100",
-    promotion: "Seasonal Bloom",
+    promotion: null,
     image: "/westcoast.jpg",
     pricing: {
       1: 5000,
@@ -226,21 +223,20 @@ export const tours = [
       1: 5000, 2: 2900, 3: 2300, 4: 1950, "5-6": 1700, "7-10": 1450, "11-14": 1300, "15-18": 1200, "19-22": 1100
     }, pax),
     highlights: [
-      "Explore charming fishing villages along the West Coast",
+      "Explore fishing villages along the West Coast",
       "Seasonal wildflower displays (typically Aug–Sep, weather dependent)",
       "Visit nature reserves, lagoons, and quiet coastal viewpoints",
       "Optional seafood lunches at local favourites"
     ],
     description:
-      "A more off-the-beaten-path journey, this tour celebrates the rugged beauty and authentic character of the Cape West Coast. In flower season, the region bursts into colour—creating unforgettable photographic opportunities."
+      "A quieter journey celebrating the rugged beauty of the Cape West Coast. In flower season, the region can burst into colour — creating strong photographic opportunities."
   },
   {
     id: "overland-custom",
     name: "Overland Custom Multiday Tour (7–14 Days)",
     duration: "7–14 Days (Fully Bespoke)",
-    rating: 4.9,
     priceFrom: "From R25,000",
-    promotion: "Tailor-Made",
+    promotion: null,
     image: "/overland.jpg",
     pricing: {
       2: 45000,
@@ -263,12 +259,12 @@ export const tours = [
     },
     highlights: [
       "Design your own route across the Western Cape and beyond",
-      "Combine wine regions, coastal towns, Aquila Private Game Reserve, and landmarks",
-      "Perfect for incentive groups, families, and special occasions",
-      "Dedicated travel planning support from our expert team"
+      "Combine wine regions, coastal towns, game reserves, and landmarks",
+      "Suited to incentive groups, families, and special occasions",
+      "Dedicated travel planning support from our team"
     ],
     description:
-      "When you'd like a journey completely shaped around your interests, our team collaborates with you to build a custom overland itinerary. From discreet executive roadshows to once-in-a-lifetime family adventures, every detail is handled with precision.",
+      "When you'd like a journey shaped around your interests, our team collaborates with you to build a custom overland itinerary — from executive roadshows to family adventures.",
     notes: "Fully custom routes across South Africa. Accommodation level adjustable."
   }
 ];
@@ -327,132 +323,83 @@ export const vehicles = [
 export const drivers = [
   {
     name: "Thabo M.",
-    experience: "12 years with UNICAB",
+    experience: "Professional chauffeur & guide",
     languages: ["English", "isiXhosa", "Afrikaans"],
-    skills: ["City & Peninsula specialist", "South African History", "Cruise passenger handling", "Airport meet & greet"],
-    rating: 4.9,
-    image: "/Thabo.png",
-    quote:
-      "Thabo met us at arrivals and looked after our family the entire week. Calm, knowledgeable, and always on time."
+    skills: ["City & Peninsula specialist", "Airport meet & greet", "Cruise passenger handling"],
+    image: "/Thabo.jpg"
   },
   {
     name: "Leah K.",
-    experience: "9 years with UNICAB",
+    experience: "Professional chauffeur & guide",
     languages: ["English", "French"],
-    skills: ["Winelands & culinary touring", "Wine Expert", "Concierge liaison", "Corporate roadshows"],
-    rating: 5.0,
-    image: "/Leah.png",
-    quote:
-      "Leah curated the perfect wine day for our clients. Her restaurant and tasting recommendations were spot on."
+    skills: ["Winelands & culinary touring", "Corporate roadshows", "Concierge liaison"],
+    image: "/Leah.jpg"
   },
   {
     name: "Andre V.",
-    experience: "15 years with UNICAB",
+    experience: "Professional chauffeur & guide",
     languages: ["English", "Afrikaans", "German (conversational)"],
-    skills: ["Garden Route overlands", "South African History", "Golf logistics", "Photographic stops"],
-    rating: 4.8,
-    image: "/Andre.jpg",
-    quote:
-      "Andre guided us along the Garden Route with incredible local insight. We always felt safe and unhurried."
+    skills: ["Garden Route overlands", "Golf logistics", "Photographic stops"],
+    image: "/Andre.jpg"
   },
   {
     name: "Zinhle P.",
-    experience: "7 years with UNICAB",
+    experience: "Professional chauffeur & guide",
     languages: ["English", "isiZulu"],
     skills: ["Events & shuttles", "VIP handling", "Night transfers"],
-    rating: 4.9,
-    image: "/Zinhle.jpg",
-    quote:
-      "Professional, friendly and discreet—Zinhle handled multiple event transfers seamlessly throughout our stay."
+    image: "/Zinhle.jpg"
   },
   {
     name: "Ahmed S.",
-    experience: "10 years with UNICAB",
+    experience: "Professional chauffeur & guide",
     languages: ["English", "Arabic", "Afrikaans"],
-    skills: ["Islamic History", "Cultural Tours", "City & Peninsula specialist", "Airport transfers"],
-    rating: 4.9,
-    image: "/Ahmed.png",
-    quote:
-      "Ahmed provided incredible insights into Cape Town's Islamic heritage. His knowledge of Bo-Kaap and local history was exceptional."
+    skills: ["Cultural tours", "City & Peninsula specialist", "Airport transfers"],
+    image: "/Ahmed.jpg"
   }
 ];
 
-export const reviews = [
-  {
-    tourId: "cape-peninsula",
-    tourName: "Cape Peninsula Tour",
-    name: "James & Emma, UK",
-    rating: 5,
-    text:
-      "A world-class experience from start to finish. Our driver adjusted the route to avoid crowds and still included every highlight."
-  },
-  {
-    tourId: "ct-city-table-mountain",
-    tourName: "Cape Town & Table Mountain City Tour",
-    name: "Patel Family, India",
-    rating: 4.9,
-    text:
-      "Perfect first day in Cape Town. The city felt immediately familiar and safe, and we received excellent restaurant tips."
-  },
-  {
-    tourId: "garden-route-extended",
-    tourName: "Garden Route Extended",
-    name: "H. Muller, Germany",
-    rating: 5,
-    text:
-      "Six days, no stress. Hotels, timings and stops were all beautifully organised. We could simply enjoy the journey."
-  },
-  {
-    tourId: "overland-custom",
-    tourName: "Custom Overland Tour",
-    name: "Corporate Incentive Group",
-    rating: 4.8,
-    text:
-      "UNICAB handled complex logistics for our incentive trip flawlessly. Our guests commented repeatedly on the professionalism of the drivers."
-  }
-];
+/** Static marketing reviews removed — use live approved reviews only. */
+export const reviews = [];
 
 export const membershipPlans = [
   {
     id: "explorer",
     name: "Explorer",
-    price: "R299 / month",
+    price: "Contact for rates",
     tagline: "For repeat leisure guests",
-    shortDescription: "A flexible membership designed for returning travellers, locals hosting guests, and light repeat users.",
+    shortDescription: "A flexible membership option for returning travellers, locals hosting guests, and light repeat users.",
     popular: false,
     benefits: [
-      "Priority booking during peak season (subject to availability)",
-      "5–8% preferred rates on selected private day tours",
+      "Priority booking support during busy periods (subject to availability)",
+      "Preferred handling for selected private day tours",
       "Complimentary bottled water and onboard Wi-Fi where available"
     ]
   },
   {
     id: "frequent",
     name: "Frequent Traveller",
-    price: "R899 / month",
-    tagline: "Most Popular",
-    shortDescription: "Ideal for frequent visitors, families, and business travellers who value reliability and priority support.",
+    price: "Contact for rates",
+    tagline: "For frequent visitors",
+    shortDescription: "Suited to frequent visitors, families, and business travellers who value reliability and priority support.",
     popular: true,
     benefits: [
-      "Guaranteed vehicle allocation for pre-booked dates",
-      "10–15% discounted rates on transfers and full-day touring",
-      "Complimentary airport fast-track coordination where available",
+      "Preferred vehicle allocation for pre-booked dates",
+      "Streamlined booking for transfers and full-day touring",
       "Dedicated point-of-contact for itinerary adjustments"
     ]
   },
   {
     id: "elite",
     name: "Elite Partner",
-    price: "R2,500 / month",
+    price: "Contact for rates",
     tagline: "For corporate & hospitality partners",
     shortDescription: "Designed for hotels, concierge desks, corporate travel managers, and VIP service providers.",
     popular: false,
     benefits: [
-      "Contracted corporate or concierge rates",
+      "Partnership rates discussed case by case",
       "Priority access to premium vehicles and senior drivers",
       "Consolidated monthly reporting and billing support",
       "Co-branded service options for VIP guests and delegations"
     ]
   }
 ];
-
