@@ -114,10 +114,7 @@ function CookieConsent() {
           <>
             <div className="cookie-consent-copy">
               <p id="cookie-consent-title" className="cookie-consent-lead">
-                We use essential cookies to run the site and optional analytics cookies to improve it.
-              </p>
-              <p className="cookie-consent-meta">
-                Essential cookies stay on. Analytics stay off until you accept.{' '}
+                Essential cookies keep the site working. Optional analytics stay off until you accept.{' '}
                 <Link to="/cookie-policy">Cookie Policy</Link>
                 {' · '}
                 <Link to="/privacy-policy">Privacy Policy</Link>
@@ -125,15 +122,15 @@ function CookieConsent() {
             </div>
             <div className="cookie-consent-actions">
               <button type="button" onClick={handleAccept} className="btn btn-primary btn-compact">
-                Accept all
+                Accept
               </button>
               <button type="button" onClick={handleReject} className="btn btn-outline btn-compact">
-                Reject all
+                Reject
               </button>
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
-                className="btn btn-outline btn-compact"
+                className="cookie-consent-settings-link"
               >
                 Settings
               </button>
