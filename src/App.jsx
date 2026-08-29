@@ -34,7 +34,6 @@ import Book from "./pages/Book";
 import Packages from "./pages/Packages";
 import NotFound from "./pages/NotFound";
 import CookieConsent from "./components/CookieConsent";
-import ContactFab from "./components/ContactFab";
 import "./styles.css";
 
 const MemberDashboard = lazy(() => import("./pages/MemberDashboard"));
@@ -117,7 +116,6 @@ function App() {
         </Routes>
       </Suspense>
       <CookieConsent />
-      <ContactFab />
     </BrowserRouter>
   );
 }
