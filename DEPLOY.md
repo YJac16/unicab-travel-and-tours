@@ -44,6 +44,7 @@ Run `npm run phase0` (`node scripts/phase0-check.js`) after env is set — it fa
 - Project: unicab-travel-and-tours
 - Domains: unicabtraveltours.com / www.unicabtraveltours.com
 - API: Express catch-all [`api/[[...path]].js`](api/[[...path]].js)
+- SPA rewrite in [`vercel.json`](vercel.json) excludes `/api/*`, `/assets/*`, and paths with a file extension so Vite bundles and `dist/` static files are never rewritten to `index.html`.
 
 Local: `npm run build && node server.js` (or Vite proxy → port 3000).
 
