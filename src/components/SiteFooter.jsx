@@ -19,9 +19,6 @@ export default function SiteFooter() {
           <a href={siteConfig.whatsapp.link} target="_blank" rel="noopener noreferrer">
             WhatsApp
           </a>
-          <a href="https://www.unicab.co.za/" target="_blank" rel="noopener noreferrer">
-            Cab &amp; Staff Transport
-          </a>
         </div>
         <nav className="footer-legal" aria-label="Legal">
           <Link to="/privacy-policy">Privacy</Link>

@@ -602,12 +602,6 @@ a[href="/login"].btn-outline {
   color: var(--text);
 }
 
-.services-note {
-  margin-top: 1.75rem;
-  text-align: center;
-  font-size: 0.95rem;
-}
-
 .contact-card-actions {
   margin-top: 1.25rem;
 }
