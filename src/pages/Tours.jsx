@@ -5,8 +5,7 @@ import DocumentTitle from "../components/DocumentTitle";
 import PublicHeader from "../components/PublicHeader";
 import SafeImage from "../components/SafeImage";
 import SiteFooter from "../components/SiteFooter";
-import { getPublicPriceLabel } from "../lib/pricing";
-import { siteConfig } from "../config";
+import { whatsappEnquiryUrl } from "../config";
 
 function Tours() {
   return (
@@ -24,7 +23,7 @@ function Tours() {
               <p className="eyebrow">Our Tours</p>
               <h1>Discover Cape Town &amp; beyond</h1>
               <p className="section-intro max-720">
-                Explore the Western Cape with private tours tailored to your interests and schedule. Request a quote or book online.
+                Explore the Western Cape with private tours tailored to your interests and schedule. Message us for a personalised quote.
               </p>
             </header>
 
@@ -55,24 +54,19 @@ function Tours() {
                     )}
                   </div>
                   <div className="card-footer">
-                    <span className="price">{getPublicPriceLabel(tour)}</span>
+                    <span className="price">Quote on request</span>
                     <div className="card-actions">
-                      <Link to={`/tours/${tour.id}/booking`} className="btn btn-primary btn-compact">
-                        Book Now
-                      </Link>
-                      <Link to={`/tours/${tour.id}`} className="btn btn-outline btn-compact">
-                        View Details
-                      </Link>
                       <a
-                        className="btn btn-grey btn-compact"
-                        href={`${siteConfig.whatsapp.link}?text=${encodeURIComponent(
-                          `Hello, I'd like a quote for: ${tour.name}`
-                        )}`}
+                        className="btn btn-primary btn-compact"
+                        href={whatsappEnquiryUrl(`Hello, I'd like a quote for the UNICAB tour: ${tour.name}`)}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         WhatsApp
                       </a>
+                      <Link to={`/tours/${tour.id}`} className="btn btn-outline btn-compact">
+                        View details
+                      </Link>
                     </div>
                   </div>
                 </article>

@@ -576,6 +576,42 @@ a[href="/login"].btn-outline {
   animation: heroRise 1.15s ease-out 0.18s both;
 }
 
+.hero-contact {
+  margin: 0.85rem 0 0;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.98rem;
+  animation: heroRise 1.12s ease-out 0.14s both;
+}
+
+.hero-contact a {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.hero-contact a:hover {
+  color: var(--accent-gold);
+}
+
+.cta-band-contact {
+  color: var(--text-muted);
+}
+
+.cta-band-contact a {
+  color: var(--text);
+}
+
+.services-note {
+  margin-top: 1.75rem;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.contact-card-actions {
+  margin-top: 1.25rem;
+}
+
 .hero-stats {
   display: none !important;
 }

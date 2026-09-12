@@ -7,6 +7,7 @@ import DocumentTitle from "../components/DocumentTitle";
 import PublicHeader from "../components/PublicHeader";
 import SafeImage from "../components/SafeImage";
 import SiteFooter from "../components/SiteFooter";
+import { siteConfig } from "../config";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -184,8 +185,16 @@ function Drivers() {
             )}
 
             <div className="section-cta">
-              <Link to="/book" className="btn btn-primary">
-                Book with UNICAB
+              <a
+                className="btn btn-primary"
+                href={siteConfig.whatsapp.linkWithMessage}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
+              <Link to="/#contact" className="btn btn-outline">
+                Enquire
               </Link>
             </div>
           </div>

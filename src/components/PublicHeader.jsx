@@ -1,14 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { siteConfig } from '../config';
 import ProfileDropdown from './ProfileDropdown';
 
 export const PUBLIC_NAV_ITEMS = [
+  { id: 'services', label: 'Services', to: '/#services' },
+  { id: 'vehicles', label: 'Fleet', to: '/vehicles' },
   { id: 'tours', label: 'Tours', to: '/tours' },
-  { id: 'packages', label: 'Packages', to: '/packages' },
-  { id: 'vehicles', label: 'Vehicles', to: '/vehicles' },
-  { id: 'drivers', label: 'Drivers', to: '/drivers' },
   { id: 'reviews', label: 'Reviews', to: '/reviews' },
-  { id: 'membership', label: 'Membership', to: '/membership' },
   { id: 'about', label: 'About', to: '/#about' },
   { id: 'contact', label: 'Contact', to: '/#contact' },
 ];
@@ -47,8 +46,18 @@ export default function PublicHeader({ showProfile = true, trailing = null }) {
               </li>
             ))}
             <li className="cta-nav">
-              <Link className="btn btn-primary btn-compact" to="/book">
-                Book Now
+              <a
+                className="btn btn-primary btn-compact"
+                href={siteConfig.whatsapp.linkWithMessage}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
+            </li>
+            <li className="cta-nav">
+              <Link className="btn btn-outline btn-compact" to="/#contact">
+                Enquire
               </Link>
             </li>
           </ul>
