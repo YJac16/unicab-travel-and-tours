@@ -3,7 +3,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import DocumentTitle from '../components/DocumentTitle';
 import PublicHeader from '../components/PublicHeader';
 import SiteFooter from '../components/SiteFooter';
-import { getPackages, submitLeadEnquiry, getPublicPriceLabel } from '../lib/api';
+import { getPackages, submitLeadEnquiry } from '../lib/api';
+import { whatsappEnquiryUrl } from '../config';
 
 export default function Packages() {
   const [packages, setPackages] = useState([]);
@@ -57,7 +58,7 @@ export default function Packages() {
             <p className="eyebrow">Packages</p>
             <h1>Curated experiences</h1>
             <p className="section-intro max-720">
-              Bookable packages continue to the tour booking flow. Quote-only packages create a lead for our team.
+              Curated private tour packages — message us for availability, pricing, and a personalised quote.
             </p>
           </header>
 
@@ -69,20 +70,20 @@ export default function Packages() {
                 <article className="card soft" key={pkg.id}>
                   <h2 className="card-title">{pkg.name}</h2>
                   <p className="card-meta">{pkg.summary}</p>
-                  <p className="tour-price">{getPublicPriceLabel(pkg)}</p>
-                  {pkg.bookable && pkg.tour_id ? (
-                    <Link className="btn btn-primary" to={`/tours/${pkg.tour_id}/booking?package=${pkg.id}`}>
-                      Book package
-                    </Link>
-                  ) : pkg.bookable ? (
-                    <Link className="btn btn-primary" to={`/book?package=${pkg.id}`}>
-                      Book package
-                    </Link>
-                  ) : (
-                    <button type="button" className="btn btn-outline" onClick={() => setEnquiry(pkg)}>
-                      Request quote
+                  <p className="tour-price">Quote on request</p>
+                  <div className="card-actions">
+                    <a
+                      className="btn btn-primary btn-compact"
+                      href={whatsappEnquiryUrl(`Hello, I'd like a quote for the UNICAB package: ${pkg.name}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      WhatsApp
+                    </a>
+                    <button type="button" className="btn btn-outline btn-compact" onClick={() => setEnquiry(pkg)}>
+                      Send enquiry
                     </button>
-                  )}
+                  </div>
                 </article>
               ))}
             </div>

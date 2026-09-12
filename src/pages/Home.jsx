@@ -1,29 +1,47 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { tours, vehicles } from "../data";
-import { siteConfig } from "../config";
+import { siteConfig, whatsappEnquiryUrl } from "../config";
 import DocumentTitle from "../components/DocumentTitle";
 import PublicHeader from "../components/PublicHeader";
 import SafeImage from "../components/SafeImage";
 import SiteFooter from "../components/SiteFooter";
-import { getPublicPriceLabel } from "../lib/pricing";
 
 const SERVICES = [
   {
     title: "Private transfers",
-    text: "Point-to-point chauffeur transfers across Cape Town and the Western Cape."
+    text: "Point-to-point chauffeur travel across Cape Town and the Western Cape — hotel, city, and Winelands routes."
   },
   {
     title: "Airport transfers",
-    text: "Reliable meet-and-greet transfers to and from Cape Town International Airport."
+    text: "Meet-and-greet arrivals and departures at Cape Town International — calm, coordinated, on time."
   },
   {
     title: "Staff & corporate transport",
-    text: "Scheduled staff transport and discreet corporate chauffeur cover for teams and visitors."
+    text: "Scheduled staff shuttles and discreet executive chauffeur cover for teams, visitors, and events."
   },
   {
     title: "Private tours",
-    text: "Guided day tours and multi-day itineraries paced around your interests and schedule."
+    text: "City highlights, peninsula days, Winelands tastings, and multi-day itineraries at your pace."
+  }
+];
+
+const TRUST_POINTS = [
+  {
+    title: "Local knowledge",
+    text: "Professional understanding of Cape Town routes, neighbourhoods, and Western Cape destinations."
+  },
+  {
+    title: "Premium fleet",
+    text: "Well-maintained sedans, MPVs, and group vehicles suited to private travel and touring."
+  },
+  {
+    title: "Private experience",
+    text: "Discreet, calm, and professionally operated — never crowded or rushed."
+  },
+  {
+    title: "Flexible journeys",
+    text: "Airport runs, corporate cover, private tours, and custom itineraries shaped around you."
   }
 ];
 
@@ -148,14 +166,30 @@ function Home() {
               <span className="hero-title-main">Private travel across the Cape</span>
             </h1>
             <p className="hero-subtitle">
-              Private transfers, airport meets, corporate transport, and guided tours with professional drivers and comfortable vehicles.
+              Private journeys. Professional drivers. Your itinerary — transfers, airport meets, corporate cover, and guided tours.
+            </p>
+            <p className="hero-contact">
+              <a
+                href={siteConfig.whatsapp.linkWithMessage}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp us
+              </a>
+              <span aria-hidden="true"> · </span>
+              <span>{siteConfig.whatsapp.displayNumber}</span>
             </p>
             <div className="hero-actions">
-              <Link to="/book" className="btn btn-primary" onClick={() => window.scrollTo(0, 0)}>
-                Book Now
-              </Link>
+              <a
+                className="btn btn-primary"
+                href={siteConfig.whatsapp.linkWithMessage}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
               <button type="button" className="btn btn-grey" onClick={() => scrollToSection("contact")}>
-                Contact us
+                Enquire
               </button>
             </div>
           </div>
@@ -165,9 +199,9 @@ function Home() {
           <div className="container section-inner">
             <header className="section-header center">
               <p className="eyebrow">What we provide</p>
-              <h2 id="services-heading">Core services</h2>
+              <h2 id="services-heading">Chauffeur &amp; touring services</h2>
               <p className="section-intro max-720">
-                UNICAB supports leisure and corporate travellers across Cape Town and the Western Cape.
+                Ways to move through Cape Town and the Western Cape — private journeys at your pace.
               </p>
             </header>
             <div className="why-grid">
@@ -178,42 +212,27 @@ function Home() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="section why-unicab" aria-labelledby="why-heading">
-          <div className="container section-inner">
-            <header className="section-header center">
-              <p className="eyebrow">Why UNICAB</p>
-              <h2 id="why-heading">Professional. Reliable. Local.</h2>
-              <p className="section-intro max-720">
-                Clear communication, punctual pickups, and drivers who know Cape Town routes beyond the postcard stops.
-              </p>
-            </header>
-            <div className="why-grid">
-              <div className="why-card">
-                <h3>Professional drivers</h3>
-                <p>Chauffeurs who focus on safety, discretion, and a calm guest experience.</p>
-              </div>
-              <div className="why-card">
-                <h3>Comfortable vehicles</h3>
-                <p>A maintained fleet suited to airport runs, hotel transfers, and full-day touring.</p>
-              </div>
-              <div className="why-card">
-                <h3>On your schedule</h3>
-                <p>Airport meets, staff transport, and private tours planned around your timing.</p>
-              </div>
-            </div>
+            <p className="section-intro max-720 services-note">
+              Point-to-point taxis via app — coming soon. For cab and staff transport today,{" "}
+              <a href="https://www.unicab.co.za/" target="_blank" rel="noopener noreferrer">
+                contact us
+              </a>{" "}
+              or visit{" "}
+              <a href="https://www.unicab.co.za/" target="_blank" rel="noopener noreferrer">
+                unicab.co.za
+              </a>
+              .
+            </p>
           </div>
         </section>
 
         <section id="vehicles" className="section vehicles" aria-labelledby="fleet-heading">
           <div className="container section-inner">
             <header className="section-header center">
-              <p className="eyebrow">Our Fleet</p>
+              <p className="eyebrow">Our fleet</p>
               <h2 id="fleet-heading">Vehicles for every journey</h2>
               <p className="section-intro max-720">
-                From executive sedans to group shuttles — choose the vehicle that fits your party and luggage.
+                From executive sedans to premium group travel — we recommend the right vehicle when you enquire.
               </p>
             </header>
             <div className="cards-grid vehicles-grid">
@@ -253,7 +272,7 @@ function Home() {
               <p className="eyebrow">Private tours</p>
               <h2 id="tours-heading">Cape Town &amp; the Western Cape</h2>
               <p className="section-intro max-720">
-                City highlights, peninsula routes, winelands days, and multi-day journeys — privately guided around your interests.
+                City highlights, peninsula routes, Winelands days, and multi-day journeys — privately guided around your interests.
               </p>
             </header>
             <div className="cards-grid">
@@ -272,18 +291,48 @@ function Home() {
                   </div>
                   <p className="card-meta">{tour.description}</p>
                   <div className="card-footer">
-                    <div className="tour-price">{getPublicPriceLabel(tour)}</div>
-                    <Link to={`/tours/${tour.id}`} className="btn btn-outline">
-                      View Details
-                    </Link>
+                    <span className="tour-price">Quote on request</span>
+                    <div className="card-actions">
+                      <a
+                        className="btn btn-primary btn-compact"
+                        href={whatsappEnquiryUrl(`Hello, I'd like a quote for the UNICAB tour: ${tour.name}`)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        WhatsApp
+                      </a>
+                      <Link to={`/tours/${tour.id}`} className="btn btn-outline btn-compact">
+                        View details
+                      </Link>
+                    </div>
                   </div>
                 </article>
               ))}
             </div>
             <div className="section-cta">
-              <Link to="/tours" className="btn btn-primary">
+              <Link to="/tours" className="btn btn-outline">
                 View all tours
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="section why-unicab trust-section" aria-labelledby="trust-heading">
+          <div className="container section-inner">
+            <header className="section-header center">
+              <p className="eyebrow">Why UNICAB</p>
+              <h2 id="trust-heading">Premium private travel, Cape Town first</h2>
+              <p className="section-intro max-720">
+                A trusted chauffeur and touring partner across Cape Town and the Western Cape.
+              </p>
+            </header>
+            <div className="why-grid">
+              {TRUST_POINTS.map((point) => (
+                <div className="why-card" key={point.title}>
+                  <h3>{point.title}</h3>
+                  <p>{point.text}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -308,10 +357,10 @@ function Home() {
           </div>
         </section>
 
-        <section id="about" className="section about slim trust-section" aria-labelledby="trust-heading">
+        <section id="about" className="section about slim" aria-labelledby="about-heading">
           <div className="container section-inner center">
             <p className="eyebrow">About UNICAB</p>
-            <h2 id="trust-heading">Cape Town travel, handled with care</h2>
+            <h2 id="about-heading">Cape Town travel, handled with care</h2>
             <div className="section-intro max-720" style={{ textAlign: "left" }}>
               <p>
                 UNICAB Travel &amp; Tours provides private transfers, airport transfers, staff and corporate transport, and private tours across Cape Town and the Western Cape.
@@ -325,25 +374,36 @@ function Home() {
 
         <section className="section cta-band" aria-labelledby="cta-heading">
           <div className="container section-inner center">
-            <h2 id="cta-heading">Ready to arrange your transfer or tour?</h2>
+            <h2 id="cta-heading">Where will you travel next?</h2>
             <p className="section-intro max-720">
-              Request a booking online or message us on WhatsApp with your dates and requirements.
+              Tell us where you&apos;re going, who&apos;s travelling, and how you&apos;d like to experience the Cape. We&apos;ll recommend the right journey and vehicle.
+            </p>
+            <p className="hero-contact cta-band-contact">
+              <a
+                href={siteConfig.whatsapp.linkWithMessage}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp us
+              </a>
+              <span aria-hidden="true"> · </span>
+              <span>{siteConfig.whatsapp.displayNumber}</span>
             </p>
             <div className="hero-actions" style={{ justifyContent: "center" }}>
-              <Link to="/book" className="btn btn-primary">
-                Book Now
-              </Link>
               <a
-                className="btn btn-grey"
+                className="btn btn-primary"
                 href={siteConfig.whatsapp.linkWithMessage}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 WhatsApp
               </a>
-              <button type="button" className="btn btn-outline" onClick={() => scrollToSection("contact")}>
-                Send a message
+              <button type="button" className="btn btn-grey" onClick={() => scrollToSection("contact")}>
+                Enquire
               </button>
+              <a className="btn btn-outline" href={`mailto:${siteConfig.email}`}>
+                Email us
+              </a>
             </div>
           </div>
         </section>
@@ -392,7 +452,7 @@ function Home() {
                   {errors.message && <span className="field-error">{errors.message}</span>}
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={submitting}>
-                  {submitting ? "Sending..." : "Send Message"}
+                  {submitting ? "Sending..." : "Send enquiry"}
                 </button>
               </form>
               <aside className="contact-aside">
@@ -409,7 +469,7 @@ function Home() {
                     </li>
                     <li>
                       <strong>WhatsApp:</strong>{" "}
-                      <a href={siteConfig.whatsapp.directLink} target="_blank" rel="noopener noreferrer">
+                      <a href={siteConfig.whatsapp.linkWithMessage} target="_blank" rel="noopener noreferrer">
                         {siteConfig.whatsapp.displayNumber}
                       </a>
                     </li>
@@ -417,6 +477,16 @@ function Home() {
                       <strong>Service area:</strong> Cape Town &amp; the Western Cape
                     </li>
                   </ul>
+                  <div className="contact-card-actions">
+                    <a
+                      className="btn btn-primary btn-compact"
+                      href={siteConfig.whatsapp.linkWithMessage}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      WhatsApp
+                    </a>
+                  </div>
                 </div>
               </aside>
             </div>

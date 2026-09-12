@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { vehicles } from "../data";
+import { siteConfig } from "../config";
 import DocumentTitle from "../components/DocumentTitle";
 import PublicHeader from "../components/PublicHeader";
 import SafeImage from "../components/SafeImage";
@@ -56,8 +57,16 @@ function Vehicles() {
             </div>
 
             <div className="section-cta">
-              <Link to="/book" className="btn btn-primary">
-                Request a vehicle
+              <a
+                className="btn btn-primary"
+                href={siteConfig.whatsapp.linkWithMessage}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                WhatsApp
+              </a>
+              <Link to="/#contact" className="btn btn-outline">
+                Enquire
               </Link>
             </div>
           </div>

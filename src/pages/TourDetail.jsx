@@ -7,7 +7,7 @@ import DocumentTitle from "../components/DocumentTitle";
 import PublicHeader from "../components/PublicHeader";
 import SafeImage from "../components/SafeImage";
 import SiteFooter from "../components/SiteFooter";
-import { siteConfig } from "../config";
+import { whatsappEnquiryUrl } from "../config";
 
 const formatStars = (rating) => {
   const fullStars = Math.round(rating);
@@ -201,22 +201,22 @@ function TourDetail() {
               </div>
 
               <div className="cta-panel">
-                <h2>Ready to book?</h2>
-                <p>Continue online or message us on WhatsApp with your preferred dates and group size.</p>
+                <h2>Ready to enquire?</h2>
+                <p>
+                  Tell us your preferred dates and group size — we&apos;ll confirm vehicle, timing, and a quote by WhatsApp or email.
+                </p>
                 <div className="card-actions">
-                  <Link to={`/tours/${tour.id}/booking`} className="btn btn-primary">
-                    Book Now
-                  </Link>
                   <a
-                    className="btn btn-grey"
-                    href={`${siteConfig.whatsapp.link}?text=${encodeURIComponent(
-                      `Hello, I'd like to enquire about: ${tour.name}`
-                    )}`}
+                    className="btn btn-primary"
+                    href={whatsappEnquiryUrl(`Hello, I'd like a quote for the UNICAB tour: ${tour.name}`)}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
                     WhatsApp
                   </a>
+                  <Link to="/#contact" className="btn btn-grey">
+                    Send enquiry
+                  </Link>
                   <Link to="/tours" className="btn btn-outline">
                     View all tours
                   </Link>

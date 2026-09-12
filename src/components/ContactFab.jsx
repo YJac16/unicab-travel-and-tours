@@ -1,18 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { siteConfig } from "../config";
-
-const NAV_LINKS = [
-  { label: "Home", to: "/" },
-  { label: "Tours", to: "/tours" },
-  { label: "Packages", to: "/packages" },
-  { label: "Vehicles", to: "/vehicles" },
-  { label: "Drivers", to: "/drivers" },
-  { label: "Reviews", to: "/reviews" },
-  { label: "Membership", to: "/membership" },
-  { label: "About", hash: "about" },
-  { label: "Contact", hash: "contact" },
-];
+import { PUBLIC_NAV_ITEMS } from "./PublicHeader";
 
 function scrollToId(id) {
   const el = document.getElementById(id);
@@ -104,27 +93,41 @@ export default function ContactFab() {
             >
               <p className="contact-fab-sheet-eyebrow">Menu</p>
               <ul>
-                {NAV_LINKS.map((item) => (
-                  <li key={item.label}>
-                    {item.hash ? (
-                      <button
-                        type="button"
-                        className="link-button"
-                        onClick={() => goToHash(item.hash)}
-                      >
-                        {item.label}
-                      </button>
-                    ) : (
-                      <Link className="link-button" to={item.to} onClick={closeMenu}>
-                        {item.label}
-                      </Link>
-                    )}
-                  </li>
-                ))}
+                {PUBLIC_NAV_ITEMS.map((item) => {
+                  const hash = item.to.includes("#") ? item.to.split("#")[1] : null;
+                  return (
+                    <li key={item.id}>
+                      {hash ? (
+                        <button
+                          type="button"
+                          className="link-button"
+                          onClick={() => goToHash(hash)}
+                        >
+                          {item.label}
+                        </button>
+                      ) : (
+                        <Link className="link-button" to={item.to} onClick={closeMenu}>
+                          {item.label}
+                        </Link>
+                      )}
+                    </li>
+                  );
+                })}
                 <li className="contact-fab-sheet-cta">
-                  <Link className="btn btn-primary" to="/book" onClick={closeMenu}>
-                    Book Now
-                  </Link>
+                  <a
+                    className="btn btn-primary"
+                    href={siteConfig.whatsapp.linkWithMessage}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={closeMenu}
+                  >
+                    WhatsApp
+                  </a>
+                </li>
+                <li className="contact-fab-sheet-cta">
+                  <button type="button" className="btn btn-outline" onClick={() => goToHash("contact")}>
+                    Enquire
+                  </button>
                 </li>
               </ul>
               <div className="contact-fab-reach">
