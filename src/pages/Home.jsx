@@ -212,17 +212,6 @@ function Home() {
                 </div>
               ))}
             </div>
-            <p className="section-intro max-720 services-note">
-              Point-to-point taxis via app — coming soon. For cab and staff transport today,{" "}
-              <a href="https://www.unicab.co.za/" target="_blank" rel="noopener noreferrer">
-                contact us
-              </a>{" "}
-              or visit{" "}
-              <a href="https://www.unicab.co.za/" target="_blank" rel="noopener noreferrer">
-                unicab.co.za
-              </a>
-              .
-            </p>
           </div>
         </section>
 
